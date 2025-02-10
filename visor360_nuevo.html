@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Visor 360° - Producto 01</title>
+  <!-- Carga jQuery (asegúrate de la versión) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- Carga SpriteSpin versión 4.0.4 -->
+  <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
+  <style>
+    /* Estilos básicos para centrar y controlar el contenedor */
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    #mySpin {
+      max-width: 980px; /* Ajusta el ancho máximo deseado */
+      width: 100%;      /* Para que se adapte a pantallas pequeñas */
+      margin: 2rem auto;
+      background: transparent;
+    }
+    /* Para hacer que la imagen dentro del visor se ajuste de manera responsive */
+    .spritespin-canvas,
+    .spritespin-stage img {
+      width: 100% !important;
+      height: auto !important;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="mySpin"></div>
+
+  <script>
+    $(document).ready(function() {
+      // Base URL de tus imágenes en GitHub
+      const baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/refs/heads/main/";
+      const folder = "Fotos/";
+      // En esta versión inicial, forzamos un producto fijo (producto 01)
+      const productNumber = "01";
+      const frameCount = 24;
+      
+      // Construimos el array de URLs
+      const images = [];
+      for (let i = 1; i <= frameCount; i++) {
+        let frame = (i < 10 ? "0" + i : i); // zero-padding (01, 02, ... 24)
+        let imageURL = baseURL + folder + "Producto_" + productNumber + "_F" + frame + ".png";
+        images.push(imageURL);
+      }
+
+      // Inicializamos SpriteSpin
+      $("#mySpin").spritespin({
+        source: images,
+        width: 980,          // Tamaño base para escritorio
+        height: 735,         // Manteniendo proporción 4:3 (980 x 0.75)
+        sense: 1,            // Sensibilidad del arrastre
+        animate: true,       // Inicia animación al cargar
+        loop: true,          // Que siga girando en bucle
+        frameTime: 120,      // Velocidad (ms) entre frames (puedes subir o bajar para ir más rápido/lento)
+        renderer: 'image',   // O 'canvas'
+        responsive: true     // Permite que intente adaptarse al tamaño del contenedor
+      });
+    });
+  </script>
+
+</body>
+</html>
