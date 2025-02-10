@@ -175,9 +175,15 @@
         }
       });
       
-      // Forzar la reproducción (en caso de que no inicie automáticamente)
-      //var api = $("#visor360").spritespin("api");
-      //api.play();
+       // Agrega un console.log para ver el objeto API
+  var api = $("#visor360").spritespin("api");
+  console.log("Objeto API:", api);
+  // Puedes ver en la consola si existe la función play; de lo contrario, omite la llamada.
+  // if(api && typeof api.play === "function"){
+  //   api.play();
+  // } else {
+  //   console.log("El método play no está disponible.");
+  // }
     }
     
     // ==================== Función para Redimensionar el Visor (Responsive) ====================
