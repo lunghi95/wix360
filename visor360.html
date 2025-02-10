@@ -3,55 +3,188 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visor 360</title>
-  <!-- Cargar jQuery desde CDN (si aún no se incluye) -->
+  <title>Visor 360 Mejorado</title>
+  
+  <!-- Cargar jQuery desde CDN -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  
   <!-- Cargar SpriteSpin desde CDN -->
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.min.js"></script>
-  <!-- Estilos para eliminar scrollbars y asegurar display block en imágenes -->
+  
+  <!-- Cargar GSAP para animaciones -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"></script>
+  
+  <!-- Estilos CSS -->
   <style>
-    #visor360,
-    #visor360 * {
-      overflow: hidden !important;
-      margin: 0;
-      padding: 0;
-    }
-    #visor360 img {
-      display: block;
-    }
+    /* Reset básico y estilos generales */
     body {
-      background-color: #fff;
       margin: 0;
       padding: 0;
-      text-align: center;
+      background: #fff;
+      position: relative;
+      font-family: Arial, sans-serif;
+    }
+    
+    /* Contenedor principal del visor 360 */
+    #visor360 {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      background: transparent;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Botones de control (play/pause y fullscreen) */
+    .controlButton {
+      position: absolute;
+      z-index: 100;
+      padding: 5px 10px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    /* Botón de play/pause en la esquina inferior derecha */
+    #toggleAnimation {
+      bottom: 10px;
+      right: 10px;
+    }
+    /* Botón de pantalla completa en la esquina superior derecha */
+    #btnFullscreen {
+      top: 10px;
+      right: 10px;
+    }
+    
+    /* Indicador de progreso en la parte inferior central */
+    #progressIndicator {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(0,0,0,0.6);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      z-index: 100;
+    }
+    
+    /* Contenedor para el selector de productos (miniaturas) */
+    #productSelector {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 140px; /* Aumentado de 80px a 140px */
+      bottom: 10px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      z-index: 100;
+      background: rgba(0,0,0,0.6);
+      padding: 5px;
+      border-radius: 4px;
+    }
+    #productSelector img {
+      width: 140px; /* Aumentado para que sean más grandes */
+      margin-bottom: 10px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 4px;
+    }
+    /* Resaltar la miniatura del producto seleccionado */
+    #productSelector img.selected {
+      border-color: #007aff;
+    }
+    
+    /* Custom scrollbar para #productSelector en Webkit */
+    #productSelector::-webkit-scrollbar {
+      width: 6px;
+    }
+    #productSelector::-webkit-scrollbar-track {
+      background: transparent;
+      border-radius: 3px;
+    }
+    #productSelector::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.5);
+      border-radius: 3px;
+    }
+    
+    /* Para Firefox (scrollbar) */
+    #productSelector {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0,0,0,0.5) transparent;
     }
   </style>
 </head>
 <body>
-  <!-- Contenedor para el visor 360 -->
-  <div id="visor360" style="width: 100%; max-width:980px; margin: 0 auto; background: transparent;"></div>
+  <!-- Contenedor del visor 360 -->
+  <div id="visor360"></div>
   
+  <!-- Botón de play/pause -->
+  <button id="toggleAnimation" class="controlButton">Pausar</button>
+  
+  <!-- Botón de pantalla completa -->
+  <button id="btnFullscreen" class="controlButton">Pantalla completa</button>
+  
+  <!-- Indicador de progreso -->
+  <div id="progressIndicator">1 de 24</div>
+  
+  <!-- Selector de productos (miniaturas) -->
+  <div id="productSelector"></div>
+  
+  <!-- Código JavaScript -->
   <script>
-    // Configuración del producto y de la secuencia de imágenes
-    var productNumber = "01";        // Cambia este valor para seleccionar otro producto (ej.: "02", "03", etc.)
-    var frameCount = 24;             // Total de imágenes por producto
-    var baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/main/"; // URL base usando raw.githubusercontent.com
-    var folder = "Fotos/";           // Carpeta donde se encuentran las imágenes
-  
-    // Generar el array de URLs de las imágenes
-    var images = [];
-    for (var i = 1; i <= frameCount; i++) {
-      // Formatea el número del fotograma a dos dígitos (por ejemplo, "01", "02", ... "24")
-      var frame = (i < 10 ? "0" + i : i);
-      images.push(baseURL + folder + "Producto_" + productNumber + "_F" + frame + ".png");
+    // ==================== Configuración Global ====================
+    var productNumber = "01";      // Producto actual ("01", "02", etc.)
+    var frameCount = 24;           // Número de imágenes por producto
+    var totalProducts = 32;        // Total de productos disponibles
+    var baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/main/";  // URL base para las imágenes
+    var folder = "Fotos/";         // Carpeta donde están las imágenes
+    
+    // ==================== Función para Formatear Números ====================
+    function pad(num) {
+      return (num < 10 ? "0" + num : num);
     }
-  
-    // Función para ajustar el tamaño del visor y mantener la relación de aspecto 4:3
+    
+    // ==================== Función para Generar el Array de Imágenes ====================
+    function getImages(prodNumber) {
+      var imgs = [];
+      for (var i = 1; i <= frameCount; i++) {
+        imgs.push(baseURL + folder + "Producto_" + prodNumber + "_F" + pad(i) + ".png");
+      }
+      return imgs;
+    }
+    
+    // ==================== Función para Inicializar el Visor 360 ====================
+    function initViewer() {
+      var imgs = getImages(productNumber);
+      $("#visor360").spritespin({
+        source: imgs,
+        width: $("#visor360").width(),
+        height: $("#visor360").width() * 0.75,  // Mantener 4:3
+        responsive: true,
+        sense: -1,
+        animate: true,        // Auto-spin activado
+        frameTime: 150,       // Aprox. 6.7 fps
+        onFrame: function(e, data) {
+          // Verifica que data.frame es un número; si no, usa 0
+          var currentFrame = (typeof data.frame === "number" ? data.frame + 1 : 0);
+          $("#progressIndicator").text(currentFrame + " de " + frameCount);
+        }
+      });
+      
+      // Forzar la reproducción (en caso de que no inicie automáticamente)
+      var api = $("#visor360").spritespin("api");
+      api.play();
+    }
+    
+    // ==================== Función para Redimensionar el Visor (Responsive) ====================
     function resizeVisor() {
       var containerWidth = $("#visor360").width();
-      var containerHeight = containerWidth * 0.75; // 4:3 -> altura = 75% del ancho
+      var containerHeight = containerWidth * 0.75;
       $("#visor360").css("height", containerHeight + "px");
-      // Si SpriteSpin ya está inicializado, actualiza sus dimensiones
       if ($("#visor360").data("spritespin")) {
         $("#visor360").spritespin("api").updateFrame({
           width: containerWidth,
@@ -59,20 +192,107 @@
         });
       }
     }
-  
-    // Inicializa el visor 360 usando SpriteSpin
-    $("#visor360").spritespin({
-      source: images,                             // Array de imágenes generado
-      width: $("#visor360").width(),              // Ancho inicial basado en el contenedor
-      height: $("#visor360").width() * 0.75,        // Altura inicial para mantener 4:3
-      responsive: true,                           // Hace que el visor sea responsivo
-      sense: -1,                                  // Ajusta la dirección del giro (usa 1 si la dirección no es la deseada)
-      animate: false                              // Control manual: el usuario arrastra la imagen
-    });
-  
-    // Llama a resizeVisor al cargar la página y al redimensionar la ventana
-    $(window).on("load resize", function() {
-      resizeVisor();
+    
+    // ==================== Función para Generar el Selector de Productos ====================
+    function generateProductSelector() {
+      var html = "";
+      for(var p = 1; p <= totalProducts; p++) {
+        var prodNum = pad(p);
+        // Utilizamos el primer fotograma (F01) como miniatura
+        var thumbURL = baseURL + folder + "Producto_" + prodNum + "_F01.png";
+        html += "<img src='" + thumbURL + "' data-product='" + prodNum + "' alt='Producto " + prodNum + "' />";
+      }
+	  console.log("Miniaturas generadas:", html); // Agrega esta línea para ver el HTML generado
+      $("#productSelector").html(html);
+      // Marcar el producto actual como seleccionado
+      $("#productSelector img").each(function(){
+        if ($(this).data("product") === productNumber) {
+          $(this).addClass("selected");
+        } else {
+          $(this).removeClass("selected");
+        }
+      });
+    }
+    
+    // ==================== Función para Actualizar el Visor al Cambiar de Producto ====================
+    function updateViewer(newProduct) {
+      productNumber = newProduct;
+      var newImages = getImages(productNumber);
+      $("#visor360").spritespin("api").updateSource(newImages);
+      // Actualizar selector visual
+      $("#productSelector img").each(function(){
+        if ($(this).data("product") === productNumber) {
+          $(this).addClass("selected");
+        } else {
+          $(this).removeClass("selected");
+        }
+      });
+    }
+    
+    // ==================== Inicialización ====================
+    $(document).ready(function(){
+      // Inicializar el visor 360
+      initViewer();
+      // Generar el selector de productos
+      generateProductSelector();
+      
+      // Ajustar el visor al cargar y al redimensionar la ventana
+      $(window).on("load resize", function() {
+        resizeVisor();
+      });
+      
+      // ==================== Auto-Spin y Pausa al Interactuar ====================
+      $("#visor360").on("mousedown touchstart", function(){
+        var api = $("#visor360").spritespin("api");
+        api.pause();
+        $("#toggleAnimation").text("Play");
+      });
+      
+      // Botón para pausar/reanudar la animación
+      $("#toggleAnimation").click(function(){
+		console.log("Toggle Animation clicked"); // Mensaje de depuración
+        var api = $("#visor360").spritespin("api");
+        if(api.isPlaying()){
+          api.pause();
+          $(this).text("Play");
+		  console.log("Animation paused"); // Indica que se pausó
+        } else {
+          api.play();
+          $(this).text("Pausar");
+		  console.log("Animation resumed"); // Indica que se reanudó
+        }
+      });
+      
+      // ==================== Botón de Pantalla Completa ====================
+      $("#btnFullscreen").click(function(){
+		console.log("Fullscreen button clicked");
+        var elem = document.getElementById("visor360");
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) { /* Firefox */
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+          elem.msRequestFullscreen();
+        }
+      });
+      
+      // Cuando se entra o sale de pantalla completa, reajustar el visor
+      document.addEventListener("fullscreenchange", resizeVisor);
+      document.addEventListener("webkitfullscreenchange", resizeVisor);
+      document.addEventListener("mozfullscreenchange", resizeVisor);
+      document.addEventListener("MSFullscreenChange", resizeVisor);
+      
+      // ==================== Selector de Productos ====================
+      $("#productSelector").on("click", "img", function(){
+        var newProduct = $(this).data("product");
+		console.log("Product clicked: " + newProduct); // Mensaje de depuración
+        updateViewer(newProduct);
+      });
+      
+      // ==================== Animación de Entrada con GSAP ====================
+      gsap.from(".controlButton", {duration: 1, opacity: 0, y: 20, stagger: 0.2});
     });
   </script>
 </body>
