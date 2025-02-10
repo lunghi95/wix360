@@ -3,70 +3,245 @@
 <head>
   <meta charset="UTF-8">
   <title>Visor 360° - Producto 01</title>
-  <!-- Carga jQuery (asegúrate de la versión) -->
+
+  <!-- jQuery -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-  <!-- Carga SpriteSpin versión 4.0.4 -->
+  <!-- SpriteSpin 4.0.4 -->
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
+
   <style>
-    /* Estilos básicos para centrar y controlar el contenedor */
     body {
       margin: 0;
       padding: 0;
       background: #f9f9f9;
       font-family: sans-serif;
       display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: center;
       min-height: 100vh;
     }
     #mySpin {
-      max-width: 980px; /* Ajusta el ancho máximo deseado */
-      width: 100%;      /* Para que se adapte a pantallas pequeñas */
+      max-width: 980px;
+      width: 100%;
       margin: 2rem auto;
       background: transparent;
     }
-    /* Para hacer que la imagen dentro del visor se ajuste de manera responsive */
     .spritespin-canvas,
     .spritespin-stage img {
       width: 100% !important;
       height: auto !important;
     }
+
+    /* Contenedor del botón para alinearlo a la derecha */
+    #buttonContainer {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto 1rem auto;
+      text-align: right;
+    }
+    /* Botón reanudar */
+    #reanudarBtn {
+      cursor: pointer;
+      background: #007bff;
+      color: #fff;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+    }
+    #reanudarBtn:hover {
+      background: #0056b3;
+    }
+
+    /* Estilo para el contador de frames */
+    #frameCounter {
+      font-size: 1rem;
+      color: #333;
+      text-align: center;
+      margin: 0 auto 1rem auto;
+      display: block;
+    }
+
+    /* ============ Carrusel de productos ============ */
+    #carouselContainer {
+      max-width: 980px;
+      width: 100%;
+      margin: 1rem auto;
+      background: rgba(0,0,0,0.6);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      scrollbar-width: thin; /* Firefox */
+    }
+    #carouselContainer::-webkit-scrollbar {
+      height: 6px;
+    }
+    #carouselContainer::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+
+    .miniature {
+      flex: 0 0 auto;
+      width: 80px;
+      height: auto;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .miniature.selected {
+      border-color: #007bff;
+    }
   </style>
 </head>
 <body>
 
+  <!-- Rotator Container -->
   <div id="mySpin"></div>
 
+  <!-- Contador -->
+  <div id="frameCounter">Cargando...</div>
+
+  <!-- Botón Reanudar -->
+  <div id="buttonContainer">
+    <button id="reanudarBtn">Reanudar 360º</button>
+  </div>
+
+  <!-- Carrusel Miniaturas -->
+  <div id="carouselContainer"></div>
+
   <script>
-    $(document).ready(function() {
-      // Base URL de tus imágenes en GitHub
-      const baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/refs/heads/main/";
-      const folder = "Fotos/";
-      // En esta versión inicial, forzamos un producto fijo (producto 01)
-      const productNumber = "01";
-      const frameCount = 24;
-      
-      // Construimos el array de URLs
+  $(function(){
+    const baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/refs/heads/main/";
+    const folder = "Fotos/";
+    const frameCount = 24;
+    let currentProduct = 1;
+
+    // Inicializar spinner la primera vez
+    initSpriteSpin(currentProduct);
+
+    // Construir carrusel con miniaturas
+    buildCarousel(32);
+
+    // ----------------- Funciones ----------------- //
+    function initSpriteSpin(productNumber) {
+      $("#mySpin").empty();
+      const images = buildSourceArray(productNumber);
+
+      // 1) Pre-load check
+      preloadImages(images, function(allOk){
+        if (!allOk){
+          console.warn("At least one image failed to load for product:", productNumber);
+        } else {
+          console.log("All images loaded OK for product:", productNumber);
+        }
+
+        // 2) Create SpriteSpin instance
+        $("#mySpin").spritespin({
+          source: images,
+          width: 980,
+          height: 735,
+          sense: 1,
+          animate: true,
+          loop: true,
+          frameTime: 150,
+
+          // KEY PART: crossOrigin + forcing canvas
+          renderer: 'image',    // 'canvas' or 'image'
+          crossOrigin: 'anonymous',
+          responsive: true,
+
+          onFrame: function(e, data) {
+            const current = data.frame + 1;
+            const total = data.frames;
+            $('#frameCounter').text(current + ' de ' + total);
+          }
+        });
+
+        // Re-bind reanudar button each time
+        const spinInstance = $("#mySpin").spritespin("api");
+        $("#reanudarBtn").off("click").on("click", function() {
+          if (spinInstance && typeof spinInstance.startAnimation === 'function') {
+            spinInstance.startAnimation();
+          } else {
+            console.error("No se pudo reanudar: spinInstance.startAnimation no existe.");
+          }
+        });
+      });
+    }
+
+    // Check each image for 404 vs 200
+    function preloadImages(urls, callback){
+      let loadedCount = 0;
+      let hasFail = false;
+
+      urls.forEach(function(url){
+        const img = new Image();
+        img.onload = function(){
+          loadedCount++;
+          if (loadedCount === urls.length){
+            callback(!hasFail); // all done
+          }
+        };
+        img.onerror = function(){
+          console.error('(×) failed:', url);
+          hasFail = true;
+          loadedCount++;
+          if (loadedCount === urls.length){
+            callback(!hasFail);
+          }
+        };
+        img.crossOrigin = 'anonymous';
+        img.src = url;
+      });
+    }
+
+    function buildSourceArray(productNum) {
       const images = [];
+      const pStr = productNum < 10 ? "0" + productNum : productNum;
       for (let i = 1; i <= frameCount; i++) {
-        let frame = (i < 10 ? "0" + i : i); // zero-padding (01, 02, ... 24)
-        let imageURL = baseURL + folder + "Producto_" + productNumber + "_F" + frame + ".png";
-        images.push(imageURL);
+        const frameStr = i < 10 ? "0" + i : i;
+        images.push(`${baseURL}${folder}Producto_${pStr}_F${frameStr}.png`);
+      }
+      return images;
+    }
+
+    function buildCarousel(numProducts) {
+      const $carousel = $('#carouselContainer');
+      $carousel.empty();
+
+      for (let p = 1; p <= numProducts; p++) {
+        const pStr = p < 10 ? "0" + p : p;
+        const thumbURL = `${baseURL}${folder}Producto_${pStr}_F01.png`;
+        const $img = $('<img class="miniature" />').attr('src', thumbURL);
+
+        $img.data('product', p);
+        if (p === currentProduct) {
+          $img.addClass('selected');
+        }
+
+        $img.on('click', function() {
+          $('.miniature').removeClass('selected');
+          $(this).addClass('selected');
+
+          currentProduct = $(this).data('product');
+          console.log("User selected product:", currentProduct);
+
+          // Re-init spin with new product
+          initSpriteSpin(currentProduct);
+        });
+
+        $carousel.append($img);
       }
 
-      // Inicializamos SpriteSpin
-      $("#mySpin").spritespin({
-        source: images,
-        width: 980,          // Tamaño base para escritorio
-        height: 735,         // Manteniendo proporción 4:3 (980 x 0.75)
-        sense: 1,            // Sensibilidad del arrastre
-        animate: true,       // Inicia animación al cargar
-        loop: true,          // Que siga girando en bucle
-        frameTime: 120,      // Velocidad (ms) entre frames (puedes subir o bajar para ir más rápido/lento)
-        renderer: 'image',   // O 'canvas'
-        responsive: true     // Permite que intente adaptarse al tamaño del contenedor
+      $carousel.on('wheel', function(e) {
+        e.preventDefault();
+        this.scrollLeft += e.originalEvent.deltaY;
       });
-    });
+    }
+  });
   </script>
 
 </body>
