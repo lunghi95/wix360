@@ -77,7 +77,7 @@
       position: absolute;
       top: 10px;
       left: 10px;
-      width: 140px; /* Aumentado de 80px a 140px */
+      width: 140px;
       bottom: 10px;
       overflow-x: hidden;
       overflow-y: auto;
@@ -87,7 +87,7 @@
       border-radius: 4px;
     }
     #productSelector img {
-      width: 140px; /* Aumentado para que sean más grandes */
+      width: 140px;
       margin-bottom: 10px;
       cursor: pointer;
       border: 2px solid transparent;
@@ -110,7 +110,6 @@
       background-color: rgba(0,0,0,0.5);
       border-radius: 3px;
     }
-    
     /* Para Firefox (scrollbar) */
     #productSelector {
       scrollbar-width: thin;
@@ -167,23 +166,17 @@
         responsive: true,
         sense: -1,
         animate: true,        // Auto-spin activado
-        frameTime: 150,       // Aprox. 6.7 fps
+        frameTime: 150,       // Aprox. 6.7 fps (ajusta este valor para cambiar la velocidad)
         onFrame: function(e, data) {
-          // Verifica que data.frame es un número; si no, usa 0
           var currentFrame = (typeof data.frame === "number" ? data.frame + 1 : 0);
           $("#progressIndicator").text(currentFrame + " de " + frameCount);
         }
       });
       
-       // Agrega un console.log para ver el objeto API
-  var api = $("#visor360").spritespin("api");
-  console.log("Objeto API:", api);
-  // Puedes ver en la consola si existe la función play; de lo contrario, omite la llamada.
-  // if(api && typeof api.play === "function"){
-  //   api.play();
-  // } else {
-  //   console.log("El método play no está disponible.");
-  // }
+      // Agrega un console.log para ver el objeto API
+      var api = $("#visor360").spritespin("api");
+      console.log("Objeto API:", api);
+      // Nota: En esta versión no usamos api.play() ya que animate: true ya inicia el auto-spin
     }
     
     // ==================== Función para Redimensionar el Visor (Responsive) ====================
@@ -202,15 +195,13 @@
     // ==================== Función para Generar el Selector de Productos ====================
     function generateProductSelector() {
       var html = "";
-      for(var p = 1; p <= totalProducts; p++) {
+      for (var p = 1; p <= totalProducts; p++) {
         var prodNum = pad(p);
-        // Utilizamos el primer fotograma (F01) como miniatura
         var thumbURL = baseURL + folder + "Producto_" + prodNum + "_F01.png";
         html += "<img src='" + thumbURL + "' data-product='" + prodNum + "' alt='Producto " + prodNum + "' />";
       }
-	  console.log("Miniaturas generadas:", html); // Agrega esta línea para ver el HTML generado
+      console.log("Miniaturas generadas:", html);
       $("#productSelector").html(html);
-      // Marcar el producto actual como seleccionado
       $("#productSelector img").each(function(){
         if ($(this).data("product") === productNumber) {
           $(this).addClass("selected");
@@ -224,8 +215,8 @@
     function updateViewer(newProduct) {
       productNumber = newProduct;
       var newImages = getImages(productNumber);
-      $("#visor360").spritespin("api").updateSource(newImages);
-      // Actualizar selector visual
+      // Actualizar el "source" usando el método "option" de SpriteSpin
+      $("#visor360").spritespin("option", "source", newImages);
       $("#productSelector img").each(function(){
         if ($(this).data("product") === productNumber) {
           $(this).addClass("selected");
@@ -237,12 +228,9 @@
     
     // ==================== Inicialización ====================
     $(document).ready(function(){
-      // Inicializar el visor 360
       initViewer();
-      // Generar el selector de productos
       generateProductSelector();
       
-      // Ajustar el visor al cargar y al redimensionar la ventana
       $(window).on("load resize", function() {
         resizeVisor();
       });
@@ -250,41 +238,40 @@
       // ==================== Auto-Spin y Pausa al Interactuar ====================
       $("#visor360").on("mousedown touchstart", function(){
         var api = $("#visor360").spritespin("api");
-        api.pause();
+        api.stop(); // Usar stop() en lugar de pause()
         $("#toggleAnimation").text("Play");
       });
       
       // Botón para pausar/reanudar la animación
       $("#toggleAnimation").click(function(){
-		console.log("Toggle Animation clicked"); // Mensaje de depuración
+        console.log("Toggle Animation clicked");
         var api = $("#visor360").spritespin("api");
         if(api.isPlaying()){
-          api.pause();
+          api.stop(); // Usar stop() en lugar de pause()
           $(this).text("Play");
-		  console.log("Animation paused"); // Indica que se pausó
+          console.log("Animation stopped");
         } else {
-          api.play();
+          api.start(); // Usar start() en lugar de play()
           $(this).text("Pausar");
-		  console.log("Animation resumed"); // Indica que se reanudó
+          console.log("Animation started");
         }
       });
       
       // ==================== Botón de Pantalla Completa ====================
       $("#btnFullscreen").click(function(){
-		console.log("Fullscreen button clicked");
+        console.log("Fullscreen button clicked");
         var elem = document.getElementById("visor360");
         if (elem.requestFullscreen) {
           elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { /* Firefox */
+        } else if (elem.mozRequestFullScreen) {
           elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+        } else if (elem.webkitRequestFullscreen) {
           elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { /* IE/Edge */
+        } else if (elem.msRequestFullscreen) {
           elem.msRequestFullscreen();
         }
       });
       
-      // Cuando se entra o sale de pantalla completa, reajustar el visor
       document.addEventListener("fullscreenchange", resizeVisor);
       document.addEventListener("webkitfullscreenchange", resizeVisor);
       document.addEventListener("mozfullscreenchange", resizeVisor);
@@ -293,7 +280,7 @@
       // ==================== Selector de Productos ====================
       $("#productSelector").on("click", "img", function(){
         var newProduct = $(this).data("product");
-		console.log("Product clicked: " + newProduct); // Mensaje de depuración
+        console.log("Product clicked: " + newProduct);
         updateViewer(newProduct);
       });
       
