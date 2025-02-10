@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visor 360</title>
+  <!-- Cargar jQuery desde CDN (si aún no se incluye) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- Cargar SpriteSpin desde CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.min.js"></script>
+  <!-- Estilos para eliminar scrollbars y asegurar display block en imágenes -->
+  <style>
+    #visor360,
+    #visor360 * {
+      overflow: hidden !important;
+      margin: 0;
+      padding: 0;
+    }
+    #visor360 img {
+      display: block;
+    }
+    body {
+      background-color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Contenedor para el visor 360 -->
+  <div id="visor360" style="width: 100%; max-width:980px; margin: 0 auto; background: transparent;"></div>
+  
+  <script>
+    // Configuración del producto y de la secuencia de imágenes
+    var productNumber = "01";        // Cambia este valor para seleccionar otro producto (ej.: "02", "03", etc.)
+    var frameCount = 24;             // Total de imágenes por producto
+    var baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/main/"; // URL base usando raw.githubusercontent.com
+    var folder = "Fotos/";           // Carpeta donde se encuentran las imágenes
+  
+    // Generar el array de URLs de las imágenes
+    var images = [];
+    for (var i = 1; i <= frameCount; i++) {
+      // Formatea el número del fotograma a dos dígitos (por ejemplo, "01", "02", ... "24")
+      var frame = (i < 10 ? "0" + i : i);
+      images.push(baseURL + folder + "Producto_" + productNumber + "_F" + frame + ".png");
+    }
+  
+    // Función para ajustar el tamaño del visor y mantener la relación de aspecto 4:3
+    function resizeVisor() {
+      var containerWidth = $("#visor360").width();
+      var containerHeight = containerWidth * 0.75; // 4:3 -> altura = 75% del ancho
+      $("#visor360").css("height", containerHeight + "px");
+      // Si SpriteSpin ya está inicializado, actualiza sus dimensiones
+      if ($("#visor360").data("spritespin")) {
+        $("#visor360").spritespin("api").updateFrame({
+          width: containerWidth,
+          height: containerHeight
+        });
+      }
+    }
+  
+    // Inicializa el visor 360 usando SpriteSpin
+    $("#visor360").spritespin({
+      source: images,                             // Array de imágenes generado
+      width: $("#visor360").width(),              // Ancho inicial basado en el contenedor
+      height: $("#visor360").width() * 0.75,        // Altura inicial para mantener 4:3
+      responsive: true,                           // Hace que el visor sea responsivo
+      sense: -1,                                  // Ajusta la dirección del giro (usa 1 si la dirección no es la deseada)
+      animate: false                              // Control manual: el usuario arrastra la imagen
+    });
+  
+    // Llama a resizeVisor al cargar la página y al redimensionar la ventana
+    $(window).on("load resize", function() {
+      resizeVisor();
+    });
+  </script>
+</body>
+</html>
