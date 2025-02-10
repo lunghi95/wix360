@@ -77,7 +77,7 @@
       position: absolute;
       top: 10px;
       left: 10px;
-      width: 140px;
+      width: 140px; /* Aumentado de 80px a 140px */
       bottom: 10px;
       overflow-x: hidden;
       overflow-y: auto;
@@ -87,7 +87,7 @@
       border-radius: 4px;
     }
     #productSelector img {
-      width: 140px;
+      width: 140px; /* Aumentado para que sean más grandes */
       margin-bottom: 10px;
       cursor: pointer;
       border: 2px solid transparent;
@@ -110,6 +110,7 @@
       background-color: rgba(0,0,0,0.5);
       border-radius: 3px;
     }
+    
     /* Para Firefox (scrollbar) */
     #productSelector {
       scrollbar-width: thin;
@@ -166,7 +167,7 @@
         responsive: true,
         sense: -1,
         animate: true,        // Auto-spin activado
-        frameTime: 150,       // Aprox. 6.7 fps (ajusta este valor para cambiar la velocidad)
+        frameTime: 150,       // Aprox. 6.7 fps (modifica este valor para cambiar la velocidad)
         onFrame: function(e, data) {
           var currentFrame = (typeof data.frame === "number" ? data.frame + 1 : 0);
           $("#progressIndicator").text(currentFrame + " de " + frameCount);
@@ -176,7 +177,7 @@
       // Agrega un console.log para ver el objeto API
       var api = $("#visor360").spritespin("api");
       console.log("Objeto API:", api);
-      // Nota: En esta versión no usamos api.play() ya que animate: true ya inicia el auto-spin
+      // No se llama a api.play() aquí, ya que animate: true debería iniciar la animación.
     }
     
     // ==================== Función para Redimensionar el Visor (Responsive) ====================
@@ -215,7 +216,7 @@
     function updateViewer(newProduct) {
       productNumber = newProduct;
       var newImages = getImages(productNumber);
-      // Actualizar el "source" usando el método "option" de SpriteSpin
+      // Actualizar el "source" usando spritespin("option", "source", ...)
       $("#visor360").spritespin("option", "source", newImages);
       $("#productSelector img").each(function(){
         if ($(this).data("product") === productNumber) {
@@ -237,23 +238,23 @@
       
       // ==================== Auto-Spin y Pausa al Interactuar ====================
       $("#visor360").on("mousedown touchstart", function(){
-        var api = $("#visor360").spritespin("api");
-        api.stop(); // Usar stop() en lugar de pause()
+        // En lugar de api.pause(), usamos:
+        $("#visor360").spritespin("option", "animate", false);
         $("#toggleAnimation").text("Play");
       });
       
       // Botón para pausar/reanudar la animación
       $("#toggleAnimation").click(function(){
         console.log("Toggle Animation clicked");
-        var api = $("#visor360").spritespin("api");
-        if(api.isPlaying()){
-          api.stop(); // Usar stop() en lugar de pause()
+        var animating = $("#visor360").spritespin("option", "animate");
+        if(animating){
+          $("#visor360").spritespin("option", "animate", false);
           $(this).text("Play");
-          console.log("Animation stopped");
+          console.log("Animation paused");
         } else {
-          api.start(); // Usar start() en lugar de play()
+          $("#visor360").spritespin("option", "animate", true);
           $(this).text("Pausar");
-          console.log("Animation started");
+          console.log("Animation resumed");
         }
       });
       
