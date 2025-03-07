@@ -20,10 +20,15 @@
       align-items: center;
       min-height: 100vh;
     }
-    #mySpin {
+    #spinnerContainer {
+      position: relative;
       max-width: 980px;
       width: 100%;
       margin: 2rem auto;
+    }
+    #mySpin {
+      width: 100%;
+      height: 735px; /* Fixed height to prevent layout shift */
       background: transparent;
     }
     .spritespin-canvas,
@@ -31,7 +36,13 @@
       width: 100% !important;
       height: auto !important;
     }
-
+    #loadingSpinner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
     /* Contenedor del botón para alinearlo a la derecha */
     #buttonContainer {
       width: 100%;
@@ -52,7 +63,6 @@
     #reanudarBtn:hover {
       background: #0056b3;
     }
-
     /* Estilo para el contador de frames */
     #frameCounter {
       font-size: 1rem;
@@ -61,7 +71,6 @@
       margin: 0 auto 1rem auto;
       display: block;
     }
-
     /* ============ Carrusel de productos ============ */
     #carouselContainer {
       max-width: 980px;
@@ -82,7 +91,6 @@
       background: #888;
       border-radius: 4px;
     }
-
     .miniature {
       flex: 0 0 auto;
       width: 80px;
@@ -98,8 +106,13 @@
 </head>
 <body>
 
-  <!-- Rotator Container -->
-  <div id="mySpin"></div>
+  <!-- Spinner Container -->
+  <div id="spinnerContainer">
+    <!-- Rotator Container -->
+    <div id="mySpin"></div>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner">Loading...</div>
+  </div>
 
   <!-- Contador -->
   <div id="frameCounter">Cargando...</div>
@@ -127,10 +140,15 @@
 
     // ----------------- Funciones ----------------- //
     function initSpriteSpin(productNumber) {
+      // Show loading spinner
+      $("#loadingSpinner").show();
+
       // Destroy existing SpriteSpin instance if it exists
       if ($("#mySpin").data("spritespin")) {
         $("#mySpin").spritespin("destroy");
       }
+
+      $("#mySpin").empty();
       const images = buildSourceArray(productNumber);
 
       // 1) Pre-load check
@@ -162,6 +180,9 @@
             $('#frameCounter').text(current + ' de ' + total);
           }
         });
+
+        // Hide loading spinner
+        $("#loadingSpinner").hide();
 
         // Re-bind reanudar button each time
         const spinInstance = $("#mySpin").spritespin("api");
