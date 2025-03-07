@@ -127,7 +127,10 @@
 
     // ----------------- Funciones ----------------- //
     function initSpriteSpin(productNumber) {
-      $("#mySpin").empty();
+      // Destroy existing SpriteSpin instance if it exists
+      if ($("#mySpin").data("spritespin")) {
+        $("#mySpin").spritespin("destroy");
+      }
       const images = buildSourceArray(productNumber);
 
       // 1) Pre-load check
