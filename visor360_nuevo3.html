@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Visor 360° - Carrusel Escalable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- Responsive -->
+
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- SpriteSpin 4.0.4 -->
+  <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
+
+  <style>
+    /* Quita márgenes, ocupa toda la pantalla, fondo blanco */
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: #fff;
+      font-family: sans-serif;
+      overflow: hidden; /* evita scroll general en la página */
+    }
+
+    /* Layout principal */
+    #layout {
+      display: flex;
+      flex-direction: row; /* por defecto, landscape: carrusel a la izquierda, visor a la derecha */
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Carrusel */
+    #carouselContainer {
+      background: rgba(0,0,0,0.6);
+      border-radius: 8px;
+      box-sizing: border-box;
+      overflow: auto;
+      padding: 0.5rem; 
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* LANDSCAPE: carrusel vertical a la izquierda */
+    @media (orientation: landscape) {
+      #carouselContainer {
+        flex-direction: column;
+        width: 15%;   /* Ajusta a tu gusto */
+        height: 100%;
+      }
+      .miniature {
+        /* Ocupar ~80% del ancho del contenedor,
+           centrarse y no pasarse de 150px, por ejemplo */
+        width: 80%;
+        max-width: auto; 
+        height: auto;
+        margin: 0 auto; /* para centrar en el contenedor */
+      }
+    }
+
+    /* PORTRAIT: carrusel horizontal abajo */
+    @media (orientation: portrait) {
+      #layout {
+        flex-direction: column;
+      }
+      #carouselContainer {
+        flex-direction: row;
+        width: 100%;
+        height: 15%;  /* Ajusta a tu gusto */
+        max-height: 200px;
+      }
+      .miniature {
+        /* Ocupar ~70% de la altura del contenedor en portrait */
+        height: 70%;
+        max-height: 150px; /* si no quieres que crezcan demasiado */
+        width: auto;
+      }
+    }
+
+    /* miniaturas estilo base */
+    .miniature {
+      border: 2px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      object-fit: cover; 
+    }
+    .miniature.selected {
+      border-color: #007bff;
+    }
+
+    /* Contenedor del visor 360 */
+    #spinnerContainer {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      overflow: hidden;
+    }
+    #mySpin {
+      flex: 1;
+      width: 100%;
+      background: #fff;
+    }
+    .spritespin-canvas,
+    .spritespin-stage img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: contain; 
+    }
+
+    /* Loading Spinner centrado */
+    #loadingSpinner {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+      z-index: 10;
+    }
+    #loadingSpinner img {
+      width: 100px; height: 100px;
+    }
+
+    /* Botón Reanudar */
+    #reanudarBtn {
+      position: absolute;
+      bottom: 10px; right: 10px;
+      cursor: pointer;
+      background: #007bff; 
+      color: #fff;
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+      border: none; 
+      border-radius: 4px;
+      z-index: 10;
+    }
+    #reanudarBtn:hover {
+      background: #0056b3;
+    }
+
+    /* Contador de frames */
+    #frameCounter {
+      position: absolute;
+      bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 1rem; 
+      color: #333;
+      background: rgba(255,255,255,0.7);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      z-index: 10;
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="layout">
+  <!-- Carrusel a la izquierda (landscape) o abajo (portrait) -->
+  <div id="carouselContainer"></div>
+
+  <!-- Visor 360 -->
+  <div id="spinnerContainer">
+    <div id="mySpin"></div>
+    <div id="loadingSpinner">
+      <img src="https://raw.githubusercontent.com/lunghi95/wix360/main/Assets/Loading.io_Spinner.gif" alt="Cargando...">
+    </div>
+    <div id="frameCounter">Cargando...</div>
+    <button id="reanudarBtn">Reanudar 360º</button>
+  </div>
+</div>
+
+<script>
+$(function(){
+  const baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/refs/heads/main/";
+  const folder = "Fotos/";
+  const frameCount = 24;
+  let currentProduct = 1;
+
+  initViewer(currentProduct);
+  buildCarousel(32);
+
+  // ------------------- INIT VIEWER ------------------- //
+  function initViewer(productNum){
+    $("#loadingSpinner").show();
+
+    if ($("#mySpin").data("spritespin")){
+      $("#mySpin").spritespin("destroy");
+    }
+    $("#mySpin").empty();
+
+    const images = buildSourceArray(productNum);
+    preloadImages(images, function(allOk){
+      if (!allOk) {
+        console.warn("Faltó alguna imagen en producto", productNum);
+      } else {
+        console.log("Cargadas OK producto", productNum);
+      }
+
+      $("#mySpin").spritespin({
+        source: images,
+        renderer: 'image',
+        crossOrigin: 'anonymous',
+        responsive: true,
+        animate: true,
+        loop: true,
+        frameTime: 150,
+        sense: 1,
+        onFrame: function(e, data){
+          const current = data.frame + 1;
+          const total = data.frames;
+          $("#frameCounter").text(`${current} de ${total}`);
+        },
+        onDragStart: function(e, data){
+          data.instance.stopAnimation();
+        }
+      });
+      $("#loadingSpinner").hide();
+
+      const spinAPI = $("#mySpin").spritespin("api");
+      $("#reanudarBtn").off("click").on("click", function(){
+        if (spinAPI && typeof spinAPI.startAnimation === 'function'){
+          spinAPI.startAnimation();
+        }
+      });
+    });
+  }
+
+  // ------------------- BUILD CAROUSEL ------------------- //
+  function buildCarousel(numProd){
+    const $c = $("#carouselContainer");
+    $c.empty();
+
+    for (let p=1; p<=numProd; p++){
+      const pStr = p<10 ? "0"+p : p;
+      const thumbURL = `${baseURL}${folder}Producto_${pStr}_F01.png`;
+      const $img = $('<img class="miniature" />').attr('src', thumbURL);
+
+      $img.data('product', p);
+      if (p === currentProduct) $img.addClass("selected");
+
+      $img.on("click", function(){
+        $(".miniature").removeClass("selected");
+        $(this).addClass("selected");
+        currentProduct = $(this).data("product");
+        console.log("Selected product:", currentProduct);
+        initViewer(currentProduct);
+      });
+      $c.append($img);
+    }
+
+    // Rueda => scroll vertical/horizontal según orientation
+    $c.on("wheel", function(e){
+      e.preventDefault();
+      const isLandscape = window.matchMedia("(orientation: landscape)").matches;
+      if (isLandscape) {
+        this.scrollTop += e.originalEvent.deltaY;
+      } else {
+        this.scrollLeft += e.originalEvent.deltaY;
+      }
+    });
+  }
+
+  // ------------------- UTILS ------------------- //
+  function buildSourceArray(prodNum){
+    const images = [];
+    const pStr = prodNum<10 ? "0"+prodNum : prodNum;
+    for (let i=1; i<=frameCount; i++){
+      const fStr = i<10 ? "0"+i : i;
+      images.push(`${baseURL}${folder}Producto_${pStr}_F${fStr}.png`);
+    }
+    return images;
+  }
+
+  function preloadImages(urls, cb){
+    let loaded = 0;
+    let fail = false;
+    urls.forEach(url=>{
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = ()=>{
+        loaded++;
+        if (loaded===urls.length) cb(!fail);
+      };
+      img.onerror=()=>{
+        console.error("(×) Falló:", url);
+        fail=true; loaded++;
+        if (loaded===urls.length) cb(!fail);
+      };
+      img.src=url;
+    });
+  }
+});
+</script>
+
+</body>
+</html>
