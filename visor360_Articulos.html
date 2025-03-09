@@ -152,6 +152,47 @@
       border-radius: 4px;
       z-index: 10;
     }
+	
+	/* Título del Producto (Artículo + Color) */
+    #productTitle {
+      position: absolute;
+      top: 10px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.7);
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-weight: bold;
+	  font-size: 2.5rem; /* o en px, por ejemplo 22px */
+      z-index: 15;
+    }
+	
+	/* ========== Título dentro de la miniatura ========== */
+.miniWrapper {
+  position: relative;
+  display: inline-block; /* o flex, según tu preferencia */
+}
+
+.miniWrapper img.miniature {
+  display: block; /* para que la imagen ocupe el 100% del contenedor sin espacios extra */
+}
+
+.miniArticleLabel {
+  position: absolute;
+  bottom: 4px; /* un pequeño margen inferior */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.5); /* fondo semitransparente */
+  color: #fff;
+  font-size: 1.0rem; /* ajusta a tu gusto */
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  pointer-events: none; /* para que no interfiera con el clic de la miniatura */
+  text-align: center;
+  max-width: 90%; /* por si el texto es largo */
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
   </style>
 </head>
@@ -163,8 +204,12 @@
 
   <!-- Visor 360 -->
   <div id="spinnerContainer">
-    <div id="mySpin"></div>
-    <div id="loadingSpinner">
+    <!-- Título flotante (Artículo + Color) -->
+    <div id="productTitle">Cargando...</div>
+    
+	<div id="mySpin"></div>
+    
+	<div id="loadingSpinner">
       <img src="https://raw.githubusercontent.com/lunghi95/wix360/main/Assets/Loading.io_Spinner.gif" alt="Cargando...">
     </div>
     <div id="frameCounter">Cargando...</div>
@@ -218,6 +263,9 @@ $(function(){
         }
       });
       $("#loadingSpinner").hide();
+	  
+	  // Actualizar título (Artículo + Color)
+      updateProductTitle(productNum);
 
       const spinAPI = $("#mySpin").spritespin("api");
       $("#reanudarBtn").off("click").on("click", function(){
@@ -248,7 +296,17 @@ $(function(){
         console.log("Selected product:", currentProduct);
         initViewer(currentProduct);
       });
-      $c.append($img);
+	  
+	// ===== NUEVO: creamos wrapper y label =====
+    const $wrapper = $('<div class="miniWrapper"></div>').append($img);
+    const info = productInfo[pStr];
+    if (info) {
+      const $label = $('<div class="miniArticleLabel"></div>').text(info.article);
+      $wrapper.append($label);
+    }
+
+	  // En lugar de $c.append($img), hacemos:
+      $c.append($wrapper);
     }
 
     // Rueda => scroll vertical/horizontal según orientation
@@ -262,6 +320,20 @@ $(function(){
       }
     });
   }
+
+// Actualiza el título con Artículo y Color usando productInfo.js
+function updateProductTitle(prodNum){
+  // Convertir a string con zero-padding
+  const pStr = prodNum<10 ? "0"+prodNum : String(prodNum);
+  // Leer la info del diccionario
+  const info = productInfo[pStr];
+  if (info) {
+    const { article, color } = info;
+    document.getElementById("productTitle").textContent = article + " " + color;
+  } else {
+    document.getElementById("productTitle").textContent = "";
+  }
+}
 
   // ------------------- UTILS ------------------- //
   function buildSourceArray(prodNum){

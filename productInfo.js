@@ -1,0 +1,37 @@
+// Diccionario con Artículo y Color de cada producto
+// Clave: "01", "02", etc. Valor: { article: "...", color: "..." }
+
+const productInfo = {
+  "01": { article: "JJ88718-4",  color: "Black" },
+  "02": { article: "JJ88718-4",  color: "Beige" },
+  "03": { article: "JJ88718-8",  color: "Off White" },
+  "04": { article: "JJ88718-8",  color: "Black" },
+  "05": { article: "JJ88718-13", color: "Black" },
+  "06": { article: "JJ88718-13", color: "Yellow" },
+  "07": { article: "JJ88572-18", color: "Beige" },
+  "08": { article: "JJ88572-18", color: "Black" },
+  "09": { article: "JJ28279-1",  color: "Off White" },
+  "10": { article: "JJ28279-1",  color: "Black" },
+  "11": { article: "JJ28198-3",  color: "Black" },
+  "12": { article: "JJ28198-3",  color: "Gold" },
+  "13": { article: "JJ28198-1",  color: "Gold" },
+  "14": { article: "JJ28198-1",  color: "Black" },
+  "15": { article: "JJ88572-19", color: "Black" },
+  "16": { article: "JJ88572-19", color: "Gold" },
+  "17": { article: "JJ9419-17",  color: "Camel" },
+  "18": { article: "JJ9419-17",  color: "Black" },
+  "19": { article: "JJ28270-6",  color: "Black" },
+  "20": { article: "JJ28270-6",  color: "White" },
+  "21": { article: "JJ88638-3",  color: "Beige" },
+  "22": { article: "JJ88638-3",  color: "Black" },
+  "23": { article: "JJ88718-5",  color: "Black" },
+  "24": { article: "JJ88718-5",  color: "White" },
+  "25": { article: "JJ9912-5",   color: "Off White" },
+  "26": { article: "JJ9912-5",   color: "Black" },
+  "27": { article: "JJ88718-14", color: "White" },
+  "28": { article: "JJ88718-14", color: "Black" },
+  "29": { article: "JJ28270-6",  color: "Black" },
+  "30": { article: "JJ28270-6",  color: "Camel" },
+  "31": { article: "JJ28270-2A", color: "Black" },
+  "32": { article: "JJ28270-2A", color: "Gold" }
+};
