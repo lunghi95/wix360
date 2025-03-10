@@ -1,0 +1,203 @@
+/* Quita márgenes, ocupa toda la pantalla, fondo blanco */
+html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: #fff;
+    font-family: sans-serif;
+    overflow: hidden; /* evita scroll general en la página */
+    user-select: none; /* deshabilita la selección de texto */
+  }
+  
+  /* Deshabilitar clic derecho en toda la página */
+  body {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Safari */
+    -khtml-user-select: none;    /* Konqueror HTML */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;       /* Internet Explorer/Edge */
+    user-select: none;           /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+  }
+  
+  /* Deshabilitar la descarga de imágenes */
+  img {
+    -webkit-user-drag: none; /* Chrome, Safari, Opera */
+    -khtml-user-drag: none;  /* Konqueror HTML */
+    -moz-user-drag: none;    /* Firefox */
+    -o-user-drag: none;      /* Opera */
+    user-drag: none;         /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+  }
+  
+  /* Layout principal */
+  #layout {
+    display: flex;
+    flex-direction: row; /* por defecto, landscape: carrusel a la izquierda, visor a la derecha */
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* Carrusel */
+  #carouselContainer {
+    background: rgba(0,0,0,0.6);
+    border-radius: 8px;
+    box-sizing: border-box;
+    overflow: auto;
+    padding: 0.5rem; 
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  
+  /* LANDSCAPE: carrusel vertical a la izquierda */
+  @media (orientation: landscape) {
+    #carouselContainer {
+      flex-direction: column;
+      width: 15%;   /* Ajusta a tu gusto */
+      height: 100%;
+    }
+    .miniature {
+      width: 90%;
+      max-width: auto; 
+      height: auto;
+      margin: 0 auto; /* para centrar en el contenedor */
+    }
+  }
+  
+  /* PORTRAIT: carrusel horizontal abajo */
+  @media (orientation: portrait) {
+    #layout {
+      flex-direction: column;
+    }
+    #carouselContainer {
+      flex-direction: row;
+      width: 100%;
+      height: 20%;  /* Ajusta a tu gusto */
+      max-height: 250px;
+      order: 2;
+    }
+    .miniature {
+      height: 95%;
+      max-height: 200px; /* si no quieres que crezcan demasiado */
+      width: auto;
+    }
+  }
+  
+  /* miniaturas estilo base */
+  .miniature {
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    object-fit: cover; 
+  }
+  .miniature.selected {
+    border-color: #007bff;
+  }
+  
+  /* Contenedor del visor 360 */
+  #spinnerContainer {
+    position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  #mySpin {
+    flex: 1;
+    width: 100%;
+    background: #fff;
+    touch-action: none; /* Desactivar el comportamiento táctil predeterminado */
+    transform-origin: center center; /* Ajustar el origen de la transformación */
+  }
+  .spritespin-canvas,
+  .spritespin-stage img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain; 
+  }
+  
+  /* Loading Spinner centrado */
+  #loadingSpinner {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    z-index: 10;
+  }
+  #loadingSpinner img {
+    width: 100px; height: 100px;
+  }
+  
+  /* Botón Reanudar */
+  #reanudarBtn {
+    position: absolute;
+    bottom: 10px; right: 10px;
+    cursor: pointer;
+    background: #007bff; 
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border: none; 
+    border-radius: 4px;
+    z-index: 10;
+  }
+  #reanudarBtn:hover {
+    background: #0056b3;
+  }
+  
+  /* Contador de frames */
+  #frameCounter {
+    position: absolute;
+    bottom: 10px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 1rem; 
+    color: #333;
+    background: rgba(255,255,255,0.7);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    z-index: 10;
+  }
+  
+  /* Título del Producto (Artículo + Color) */
+  #productTitle {
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,255,255,0.7);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1.5rem; /* o en px, por ejemplo 22px */
+    z-index: 15;
+  }
+  
+  /* ========== Título dentro de la miniatura ========== */
+  .miniWrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .miniWrapper img.miniature {
+    display: block; /* para que la imagen ocupe el 100% del contenedor sin espacios extra */
+  }
+  
+  .miniArticleLabel {
+    position: absolute;
+    bottom: 4px; /* un pequeño margen inferior */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.5); /* fondo semitransparente */
+    color: #fff;
+    font-size: 0.8rem; /* ajusta a tu gusto */
+    padding: 0.1rem 0.2rem;
+    border-radius: 4px;
+    pointer-events: none; /* para que no interfiera con el clic de la miniatura */
+    text-align: center;
+    max-width: 90%; /* por si el texto es largo */
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }

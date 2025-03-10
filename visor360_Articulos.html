@@ -20,6 +20,35 @@
       background: #fff;
       font-family: sans-serif;
       overflow: hidden; /* evita scroll general en la página */
+      user-select: none; /* deshabilita la selección de texto */
+    }
+
+    /* Deshabilitar clic derecho en toda la página */
+    body {
+      -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none;   /* Safari */
+      -khtml-user-select: none;    /* Konqueror HTML */
+      -moz-user-select: none;      /* Firefox */
+      -ms-user-select: none;       /* Internet Explorer/Edge */
+      user-select: none;           /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+    }
+
+    /* Deshabilitar la descarga de imágenes */
+    img {
+      -webkit-user-drag: none; /* Chrome, Safari, Opera */
+      -khtml-user-drag: none;  /* Konqueror HTML */
+      -moz-user-drag: none;    /* Firefox */
+      -o-user-drag: none;      /* Opera */
+      user-drag: none;         /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+    }
+
+/* Quita márgenes, ocupa toda la pantalla, fondo blanco */
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      background: #fff;
+      font-family: sans-serif;
+      overflow: hidden; /* evita scroll general en la página */
     }
 
     /* Layout principal */
@@ -202,7 +231,7 @@
 
   </style>
 </head>
-<body>
+<body oncontextmenu="return false;"> <!-- Deshabilitar clic derecho -->
 
 <div id="layout">
   <!-- Carrusel a la izquierda (landscape) o abajo (portrait) -->
@@ -427,6 +456,15 @@ function updateProductTitle(prodNum){
       e.preventDefault();
     }
   });
+
+  // Deshabilitar la selección de texto y el clic derecho en toda la página
+  $(document).on('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    $(document).on('selectstart', function(e) {
+      e.preventDefault();
+    });
 
 });
 </script>

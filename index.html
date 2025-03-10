@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Identify - Visor 360°</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!-- Responsive -->
+
+  <!-- jQuery -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- SpriteSpin 4.0.4 -->
+  <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
+  <!-- Diccionario con Artículo y Color -->
+  <script src="https://raw.githubusercontent.com/lunghi95/wix360/main/productInfo.js"></script>
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="https://raw.githubusercontent.com/lunghi95/wix360/main/styles.css">
+
+</head>
+<body oncontextmenu="return false;"> <!-- Deshabilitar clic derecho -->
+
+<div id="layout">
+  <!-- Carrusel a la izquierda (landscape) o abajo (portrait) -->
+  <div id="carouselContainer"></div>
+
+  <!-- Visor 360 -->
+  <div id="spinnerContainer">
+    <!-- Título flotante (Artículo + Color) -->
+    <div id="productTitle">Cargando...</div>
+    
+    <div id="mySpin"></div>
+    
+    <div id="loadingSpinner">
+      <img src="https://raw.githubusercontent.com/lunghi95/wix360/main/Assets/Loading.io_Spinner.gif" alt="Cargando...">
+    </div>
+    <div id="frameCounter">Cargando...</div>
+    <button id="reanudarBtn">Reanudar 360º</button>
+  </div>
+</div>
+
+<!-- Script JavaScript -->
+<script src="https://raw.githubusercontent.com/lunghi95/wix360/main/script.js"></script>
+
+</body>
+</html>
