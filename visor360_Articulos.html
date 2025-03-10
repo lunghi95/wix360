@@ -404,7 +404,8 @@ function updateProductTitle(prodNum){
         y: (e.touches[0].pageY + e.touches[1].pageY) / 2
       };
 
-      const translateX = currentMidpoint.x - initialMidpoint.x;
+      // Mantener la posición inicial para evitar la rotación lateral
+      const translateX = 0;
       const translateY = currentMidpoint.y - initialMidpoint.y;
 
       $(this).css("transform", `scale(${scale}) translate(${translateX}px, ${translateY}px)`);
