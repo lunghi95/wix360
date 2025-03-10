@@ -104,6 +104,7 @@
       width: 100%;
       background: #fff;
       touch-action: none; /* Desactivar el comportamiento táctil predeterminado */
+      transform-origin: center center; /* Ajustar el origen de la transformación */
     }
     .spritespin-canvas,
     .spritespin-stage img {
@@ -373,6 +374,7 @@ function updateProductTitle(prodNum){
   // ------------------- ZOOM TÁCTIL ------------------- //
   let initialDistance = 0;
   let scale = 1;
+  let initialMidpoint = { x: 0, y: 0 };
 
   $("#mySpin").on("touchstart", function(e){
     if (e.touches.length === 2) {
@@ -380,6 +382,10 @@ function updateProductTitle(prodNum){
         e.touches[0].pageX - e.touches[1].pageX,
         e.touches[0].pageY - e.touches[1].pageY
       );
+      initialMidpoint = {
+        x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
+        y: (e.touches[0].pageY + e.touches[1].pageY) / 2
+      };
     }
   });
 
@@ -393,7 +399,15 @@ function updateProductTitle(prodNum){
       scale *= delta;
       initialDistance = currentDistance;
 
-      $(this).css("transform", `scale(${scale})`);
+      const currentMidpoint = {
+        x: (e.touches[0].pageX + e.touches[1].pageX) / 2,
+        y: (e.touches[0].pageY + e.touches[1].pageY) / 2
+      };
+
+      const translateX = currentMidpoint.x - initialMidpoint.x;
+      const translateY = currentMidpoint.y - initialMidpoint.y;
+
+      $(this).css("transform", `scale(${scale}) translate(${translateX}px, ${translateY}px)`);
     }
   });
 
@@ -401,7 +415,7 @@ function updateProductTitle(prodNum){
     if (e.touches.length < 2) {
       initialDistance = 0;
       // Restablecer el zoom al soltar los dedos
-      $(this).css("transform", `scale(1)`);
+      $(this).css("transform", `scale(1) translate(0, 0)`);
       scale = 1;
     }
   });
