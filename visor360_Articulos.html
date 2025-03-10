@@ -69,7 +69,7 @@
         width: 100%;
         height: 20%;  /* Ajusta a tu gusto */
         max-height: 250px;
-		order:2;
+        order: 2;
       }
       .miniature {
         /* Ocupar ~70% de la altura del contenedor en portrait */
@@ -400,6 +400,16 @@ function updateProductTitle(prodNum){
   $("#mySpin").on("touchend", function(e){
     if (e.touches.length < 2) {
       initialDistance = 0;
+      // Restablecer el zoom al soltar los dedos
+      $(this).css("transform", `scale(1)`);
+      scale = 1;
+    }
+  });
+
+  // Desactivar el zoom en el carrusel
+  $("#carouselContainer").on("touchstart touchmove", function(e){
+    if (e.touches.length === 2) {
+      e.preventDefault();
     }
   });
 
