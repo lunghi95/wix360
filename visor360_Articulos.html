@@ -103,6 +103,7 @@
       flex: 1;
       width: 100%;
       background: #fff;
+      touch-action: none; /* Desactivar el comportamiento táctil predeterminado */
     }
     .spritespin-canvas,
     .spritespin-stage img {
@@ -256,7 +257,7 @@ $(function(){
         animate: true,
         loop: true,
         frameTime: 150,
-        sense: 1,
+        sense: -1,
         onFrame: function(e, data){
           const current = data.frame + 1;
           const total = data.frames;
@@ -368,6 +369,40 @@ function updateProductTitle(prodNum){
       img.src=url;
     });
   }
+
+  // ------------------- ZOOM TÁCTIL ------------------- //
+  let initialDistance = 0;
+  let scale = 1;
+
+  $("#mySpin").on("touchstart", function(e){
+    if (e.touches.length === 2) {
+      initialDistance = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+    }
+  });
+
+  $("#mySpin").on("touchmove", function(e){
+    if (e.touches.length === 2) {
+      const currentDistance = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      const delta = currentDistance / initialDistance;
+      scale *= delta;
+      initialDistance = currentDistance;
+
+      $(this).css("transform", `scale(${scale})`);
+    }
+  });
+
+  $("#mySpin").on("touchend", function(e){
+    if (e.touches.length < 2) {
+      initialDistance = 0;
+    }
+  });
+
 });
 </script>
 
