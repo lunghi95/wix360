@@ -233,6 +233,9 @@
       background: #0056b3;
     }
 
+    .hidden {
+  display: none;
+}
     /* Contador de frames */
     #frameCounter {
       position: absolute;
@@ -294,7 +297,7 @@
 /* Estilo para el texto del logo */
 #brandLogoText {
   position: absolute;
-  bottom: 20px;
+  bottom: 10px;
   left: 10px;
   font-family: 'Aviano Sans', sans-serif;
   font-size: clamp(2rem, 5vw, 3rem); /* Ajusta los valores según sea necesario */
@@ -320,7 +323,7 @@
 	<div id="loadingSpinner">
       <img src="https://raw.githubusercontent.com/lunghi95/wix360/main/Assets/Loading.io_Spinner.gif" alt="Cargando...">
     </div>
-    <div id="frameCounter">Cargando...</div>
+    <div id="frameCounter" class="hidden">Cargando...</div>
     <button id="reanudarBtn">Reanudar 360º</button>
     <button id="infoBtn">+ Info</button>
 <div id="infoModal" class="modal">
