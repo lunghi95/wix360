@@ -19,6 +19,62 @@
       src: url('Assets/Aviano Sans.otf') format('opentype');
     }
 
+    /* Estilo para el botón "+ Info" */
+#infoBtn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  background: #007bff;
+  color: #fff;
+  font-size: 1rem;
+  padding: 0.5rem 0.5rem;
+  border: none;
+  border-radius: 15px;
+  z-index: 20;
+}
+#infoBtn:hover {
+  background: #0056b3;
+}
+
+/* Estilo para el modal */
+.modal {
+  display: none; /* Oculto por defecto */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente */
+  z-index: 30;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+/* Estilo para el contenido del modal */
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  top: 10px;
+  right: 10px;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+}
+
+.close {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  font-size: 2.5rem;
+  cursor: pointer;
+}
+
     /* Quita márgenes, ocupa toda la pantalla, fondo blanco */
     html, body {
       margin: 0; padding: 0;
@@ -239,12 +295,12 @@
 #brandLogoText {
   position: absolute;
   bottom: 10px;
-  left: 15%;
-  transform: translateX(-50%);
+  left: 10px;
   font-family: 'Aviano Sans', sans-serif;
-  font-size: 5vw; /* Ajusta el tamaño según sea necesario */
+  font-size: clamp(2rem, 5vw, 3rem); /* Ajusta los valores según sea necesario */
   color: #000; /* Ajusta el color según sea necesario */
   z-index: 20;
+  margin-left: 0%; /* Ajusta este valor según la distancia deseada desde el borde izquierdo */
 }
   </style>
 </head>
@@ -266,6 +322,18 @@
     </div>
     <div id="frameCounter">Cargando...</div>
     <button id="reanudarBtn">Reanudar 360º</button>
+    <button id="infoBtn">+ Info</button>
+<div id="infoModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Características</h2>
+    <p>Numeración: 36:2 37:3 38:3 39:2 40:2</p>
+    <p>Plantilla: Memory Foam Confort</p>
+    <p>Base: Eva (Super liviana)</p>
+    <!-- Agrega más características según sea necesario -->
+  </div>
+</div>
+
     <!-- Texto del logo -->
     <div id="brandLogoText">IDENTIFY</div>
   </div>
@@ -475,6 +543,42 @@ function updateProductTitle(prodNum){
       e.preventDefault();
     }
   });
+
+  $(document).ready(function(){
+  // Obtener el modal
+  var modal = document.getElementById("infoModal");
+
+  // Obtener el botón que abre el modal
+  var btn = document.getElementById("infoBtn");
+
+  // Obtener el elemento <span> que cierra el modal
+  var span = document.getElementsByClassName("close")[0];
+
+  // Cuando el usuario hace clic en el botón, abre el modal y oculta el botón
+  btn.onclick = function() {
+    modal.style.display = "flex";
+    btn.style.display = "none";
+  }
+
+  // Cuando el usuario hace clic en <span> (x), cierra el modal y muestra el botón
+  span.onclick = function() {
+    modal.style.display = "none";
+    btn.style.display = "block";
+  }
+
+  // Cuando el usuario hace clic fuera del contenido del modal, cierra el modal y muestra el botón
+  modal.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+      btn.style.display = "block";
+    }
+  }
+
+  // Evitar que el clic dentro del contenido del modal cierre el modal
+  document.querySelector('.modal-content').onclick = function(event) {
+    event.stopPropagation();
+  }
+});
 
   // Deshabilitar la selección de texto y el clic derecho en toda la página
   $(document).on('contextmenu', function(e) {
