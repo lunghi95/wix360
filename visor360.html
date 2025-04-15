@@ -13,7 +13,10 @@
   <script src="productInfo.js"></script>
   <!-- Módulo de Pedidos -->
   <script src="pedidoModule.js"></script>
+  <link rel="stylesheet" href="pedidoPanel.css">
+  <script src="pedidoPanel.js"></script>
   <script src="botonesPedido.js"></script>
+  
 
 
   <style>
@@ -235,6 +238,10 @@
     #reanudarBtn:hover {
       background: #0056b3;
     }
+    #pedido-buttons button:hover {
+      filter: brightness(0.85);
+    }
+
 
     .hidden {
   display: none;
@@ -455,7 +462,7 @@ $(function(){
       const thumbURL = `${baseURL}${folder}Producto_${pStr}_F01.jpg`;
       const $img = $('<img class="miniature" />').attr('src', thumbURL);
 
-      $img.data('product', p);
+      $img.attr('data-product', p);
       if (p === currentProduct) $img.addClass("selected");
 
       $img.on("click", function(){
@@ -653,6 +660,53 @@ function updateProductTitle(prodNum){
 
 });
 </script>
+
+<!-- Modal Pedido -->
+<div id="pedidoModal" class="modal" style="display: none; align-items: center; justify-content: center;">
+  <div class="modal-panel">
+    <div class="tabs" id="tabs-nav" style="display: none;">
+  <button class="tab active" onclick="mostrarSolapa('cabecera')">Cabecera</button>
+  <button class="tab" id="detalle-tab" onclick="mostrarSolapa('detalle')">Detalle</button>
+</div>
+
+    <div class="tab-content" id="tab-cabecera">
+      <label class="full-width">Nombre* <input type="text" id="pedido-nombre"></label>
+      <label class="half-width">Teléfono <input type="text" id="pedido-telefono"></label>
+      <label class="half-width">Dirección <input type="text" id="pedido-direccion"></label>
+      <label class="half-width">Localidad <input type="text" id="pedido-localidad"></label>
+      <label class="half-width">Código Postal <input type="text" id="pedido-cp"></label>
+      <label class="half-width">Provincia <input type="text" id="pedido-provincia"></label>
+      <label class="full-width">Email <input type="email" id="pedido-email"></label>
+      <label class="half-width">CUIT <input type="text" id="pedido-cuit" maxlength="13" oninput="formatearCUIT(this)"></label>
+      <label class="half-width" id="label-cond-iva" style="display:none">
+        Cond. IVA*<br>
+        <select id="pedido-cond-iva">
+          <option value="">Seleccionar</option>
+          <option value="Responsable Inscripto">Responsable Inscripto</option>
+          <option value="Monotributo">Monotributo</option>
+        </select>
+      </label>
+      <label class="half-width">Expreso <input type="text" id="pedido-expreso"></label>
+      <label class="half-width">Condición de venta <input type="text" id="pedido-condventa"></label>
+      <label class="half-width">Vendedor <input type="text" id="pedido-vendedor"></label>
+    </div>
+
+    <div class="tab-content" id="tab-detalle" style="display:none">
+      <table id="tablaDetalle">
+        <thead>
+          <tr><th>Artículo</th><th>Color</th><th>Cant.</th><th>Obs.</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="totalPares">Total: 0 pares</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancelar" onclick="cerrarPedidoModal()">Cancelar</button>
+      <button class="guardar" id="btnGuardarPedido" onclick="guardarPedidoFinal()">Guardar</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
