@@ -1,7 +1,10 @@
+// pedidoModule.js
+// Módulo de datos y lógica de pedidos
 
 let pedidoActual = [];
-let clienteData = {};
+let clienteData = null;
 
+// Códigos internos por artículo y color
 const codigosInternos = {
   "JJ9825-5": { "BLACK": 22511, "WHITE": 22512, "BLACK TOTAL": 22531 },
   "JJ28198-3": { "BLACK": 22503, "GOLD": 22504 },
@@ -21,87 +24,88 @@ const codigosInternos = {
   "JJ88718-5": { "WHITE": 22516, "BLACK": 22515 }
 };
 
+// Artículos con variantes especial Black / Black Total
 const variantesBlackTotal = {
   "JJ9825-5": ["BLACK", "BLACK TOTAL"],
   "JJ88718-14": ["BLACK", "BLACK TOTAL"],
   "JJ88718-4": ["BLACK", "BLACK TOTAL"]
 };
 
+/**
+ * Agrega un artículo al pedido, gestionando variantes Black/Black Total
+ */
 function agregarArticuloAlPedido(articulo, color) {
-  const articuloKey = articulo.toUpperCase().trim();
-  const colorKey = color.toUpperCase().trim();
+  const artKey = articulo.toUpperCase().trim();
+  const colKey = color.toUpperCase().trim();
 
-  if (variantesBlackTotal[articuloKey] && colorKey === "BLACK") {
-    const opciones = variantesBlackTotal[articuloKey];
+  // Si hay variante especial y se seleccionó "BLACK"
+  if (variantesBlackTotal[artKey] && colKey === "BLACK") {
+    const opciones = variantesBlackTotal[artKey];
     const seleccion = prompt(
-      `¿Qué variante querés agregar de ${articuloKey}?
-` +
-      opciones.map((v, i) => `${i + 1}. ${v}`).join('\n')
+      `¿Qué variante querés agregar de ${artKey}?\n` +
+        opciones.map((v, i) => `${i + 1}. ${v}`).join('\n')
     );
-
     if (!seleccion || isNaN(seleccion) || seleccion < 1 || seleccion > opciones.length) {
       alert("Selección inválida.");
       return;
     }
-
-    const varianteElegida = opciones[parseInt(seleccion) - 1];
-    return agregarLinea(articuloKey, varianteElegida);
+    const variante = opciones[parseInt(seleccion) - 1];
+    return agregarLinea(artKey, variante);
   }
-
-  agregarLinea(articuloKey, colorKey);
+  // Variante normal
+  agregarLinea(artKey, colKey);
 }
 
+/**
+ * Agrega una línea al pedido pidiendo cantidad y observaciones
+ */
 function agregarLinea(articulo, color, extraObs = '') {
-  const articuloKey = articulo.toUpperCase().trim();
-  const colorKey = color.toUpperCase().trim();
-  const codigoInterno = codigosInternos[articuloKey]?.[colorKey];
-
-  if (!codigoInterno) {
-    alert(`❌ No se encontró el código interno para ${articuloKey} - ${colorKey}`);
+  const artKey = articulo.toUpperCase().trim();
+  const colKey = color.toUpperCase().trim();
+  const codigo = codigosInternos[artKey]?.[colKey];
+  if (!codigo) {
+    alert(`❌ No se encontró el código interno para ${artKey} - ${colKey}`);
     return;
   }
-
-  const cantidad = prompt(`¿Cuántos pares de ${articuloKey} (${colorKey}) querés agregar?`);
+  const cantidad = prompt(`¿Cuántos pares de ${artKey} (${colKey}) querés agregar?`);
   if (!cantidad || isNaN(cantidad) || cantidad <= 0) {
     alert('❌ Cantidad inválida.');
     return;
   }
-
   const observaciones = prompt('¿Observaciones? (Talle, detalles, etc.)', extraObs);
 
   pedidoActual.push({
-    codigo: codigoInterno,
-    descripcion: '',
+    articulo: artKey,
+    color: colKey,
+    codigo: codigo,
     cantidad: parseInt(cantidad),
-    precio: '',
-    bonificacion: '',
-    observaciones: observaciones || '',
-    articulo: articuloKey
+    observaciones: observaciones || ''
   });
-
   alert('✅ Artículo agregado al pedido.');
 }
 
+/**
+ * Obtiene índice de producto activo en carrusel
+ */
 function getCurrentProductIndex() {
-  const selected = document.querySelector(".miniature.selected");
-  if (!selected) return null;
-  const num = selected.dataset.product || selected.getAttribute("data-product");
-  return num ? num.padStart(2, "0") : null;
+  const sel = document.querySelector('.miniature.selected');
+  if (!sel) return null;
+  const num = sel.dataset.product || sel.getAttribute('data-product');
+  return num ? num.toString().padStart(2, '0') : null;
 }
 
-function agregarProductoActual(index = null) {
-  const idx = index || getCurrentProductIndex();
-  if (!idx || typeof productInfo === 'undefined' || !productInfo[idx]) {
-    alert("No se encontró información del producto actual.");
-    return;
-  }
-
-  const articulo = productInfo[idx].article;
-  const color = productInfo[idx].color;
-
-  agregarArticuloAlPedido(articulo, color);
+/**
+ * Agrega al pedido el producto actual del visor
+ */
+function agregarLineaDesdeVisor(idx) {
+  const info = productInfo[idx];
+  if (!info) return alert('No se encontró información del producto actual.');
+  agregarArticuloAlPedido(info.article, info.color);
 }
 
+/**
+ * Muestra el pedido en consola (debug)
+ */
 function mostrarPedidoEnConsola() {
-  console.log("📝 Pedido actual:", pedidoActual);
+  console.log('📝 Pedido actual:', pedidoActual);
 }

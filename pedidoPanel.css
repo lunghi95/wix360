@@ -1,145 +1,223 @@
+/* -------------------------------------------------
+  pedidoPanel.css - Estilos para Modales de Pedido
+------------------------------------------------- */
+
+/* Modal genérico */
 .modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.4);
   z-index: 9999;
 }
 
+/* Panel interior de modal */
 .modal-panel {
   background: #fff;
-  padding: 30px;
-  border-radius: 16px;
-  max-width: 600px;
-  width: 95%;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-  font-family: 'Segoe UI', sans-serif;
-}
-
-.tabs {
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  gap: 10px;
-}
-.tab {
-  background-color: #eee;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-.tab:hover {
-  background-color: #ddd;
-}
-.tab.active {
-  background-color: #007bff;
-  color: white;
+  flex-direction: column;
 }
 
-.tab-content {
+/* Cliente: grid de dos columnas */
+.tab-content.cliente-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 15px 20px;
-  margin-bottom: 20px;
+  gap: 10px 20px;
 }
-.tab-content label {
+.tab-content.cliente-grid label {
   display: flex;
   flex-direction: column;
   font-size: 0.9rem;
   color: #333;
 }
-.tab-content input,
-.tab-content select {
-  padding: 10px;
+.tab-content.cliente-grid label.full-width {
+  grid-column: 1 / -1;
+}
+
+/* Inputs y selects estilizados */
+.tab-content.cliente-grid input,
+.tab-content.cliente-grid select {
+  padding: 8px 12px;
   border: 1px solid #ccc;
-  border-radius: 10px;
-  background-color: #f9f9f9;
+  border-radius: 6px;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
   font-size: 0.95rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.tab-content input:focus,
-.tab-content select:focus {
+.tab-content.cliente-grid input:focus,
+.tab-content.cliente-grid select:focus {
   border-color: #007bff;
+  box-shadow: inset 0 2px 8px rgba(0,123,255,0.2);
   outline: none;
-  background-color: #fff;
 }
 
-#tablaDetalle {
-  width: 100%;
-  border-collapse: collapse;
-}
-#tablaDetalle th, #tablaDetalle td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
-#tablaDetalle th {
-  background-color: #f2f2f2;
-}
-
-#totalPares {
-  margin-top: 10px;
-  text-align: right;
-  font-weight: bold;
-  color: #333;
-}
-
+/* Footer de modal: botones */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  margin-top: 15px;
 }
-
 .modal-footer button {
   padding: 10px 18px;
-  border-radius: 10px;
   border: none;
+  border-radius: 6px;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: filter 0.15s ease;
 }
-
 .modal-footer .cancelar {
   background-color: #e74c3c;
-  color: white;
+  color: #fff;
+}
+.modal-footer .cancelar:hover {
+  filter: brightness(0.9);
+}
+.modal-footer .guardar {
+  background-color: #2ecc71;
+  color: #fff;
 }
 .modal-footer .guardar:hover {
-  background-color: #27ae60;
-}
-.tab-content label[style*="grid-column: span 2"] {
-  grid-column: span 2;
+  filter: brightness(0.9);
 }
 
-.full-width {
-  grid-column: 1 / -1;
+/* Center modals override */
+#clienteModal.modal,
+#detalleModal.modal {
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.half-width {
-  grid-column: span 1;
+/* ======================================================
+   Detalle del Pedido: tabla con header fijo + scroll
+   ======================================================
+*/
+#detalleModal .modal-panel {
+  max-width: 800px;
+  width: 80%;
+  max-height: 80vh;
+  padding: 0px 20px 20px;
 }
 
-#tab-cabecera {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px 20px;
+/* Reducir sólo el espacio entre título y subtítulo */
+#detalleModal .modal-panel h2 {
+  margin-bottom: 10px;    /* antes eran más, ahora queda muy junto */
 }
 
-#tab-cabecera label.full-width {
-  grid-column: 1 / -1;
+.detalle-cliente {
+  font-size: 1rem;
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333;
 }
 
-#tab-cabecera label.half-width {
-  grid-column: span 1;
+/* Wrapper para scroll sólo del cuerpo */
+.table-wrapper {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin-bottom: 10px;
 }
 
-.guardar-verde {
-  background-color: #2ecc71;
-  color: white;
+/* Tabla responsive, layout automático */
+#tablaDetalle {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
 }
-.guardar-verde:hover {
-  background-color: #27ae60;
+
+/* Encabezados fijos */
+#tablaDetalle thead th {
+  position: sticky;
+  top: 0;
+  background: #f0f0f0;
+  padding: 8px;
+  border: 1px solid #ddd;
+  font-weight: 600;
+  text-align: left;
+  z-index: 1;
+}
+
+/* Filas de cuerpo */
+#tablaDetalle tbody td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  background: #fafafa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Column Cantidad fijo */
+#tablaDetalle th:nth-child(3),
+#tablaDetalle td:nth-child(3) {
+  width: 5ch;
+  max-width: 5ch;
+  overflow: visible; /* mostrar campo interno */
+}
+
+/* Input cantidad ajustado y redondeado */
+#tablaDetalle td:nth-child(3) input {
+  width: 6ch;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* Column Acciones fijo */
+#tablaDetalle th:nth-child(5),
+#tablaDetalle td:nth-child(5) {
+  width: 3rem;
+}
+
+/* Columnas Artículo y Color mínimo al contenido */
+#tablaDetalle th:nth-child(1),
+#tablaDetalle td:nth-child(1),
+#tablaDetalle th:nth-child(2),
+#tablaDetalle td:nth-child(2) {
+  width: 1%;
+}
+
+/* Otras columnas (especialmente Observaciones) toman el resto */
+
+/* Botones ícono en acciones */
+#tablaDetalle td:nth-child(5) button {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  margin: 0 2px;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+#tablaDetalle td:nth-child(5) button:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+/* Scrollbar estilos */
+.table-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+/* Estilo Total de pares destacado */
+#totalPares {
+  text-align: right;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 5px 0;
 }

@@ -11,9 +11,10 @@
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
   <!-- Diccionario con Artículo y Color -->
   <script src="productInfo.js"></script>
-  <!-- Módulo de Pedidos -->
-  <script src="pedidoModule.js"></script>
+  
+  <!-- Estilos / Scripts de pedidos -->
   <link rel="stylesheet" href="pedidoPanel.css">
+  <script src="pedidoModule.js"></script>
   <script src="pedidoPanel.js"></script>
   <script src="botonesPedido.js"></script>
   
@@ -393,6 +394,112 @@
   </div>
 </div>
 
+<!-- Modal Cliente (Cabecera) -->
+<div id="clienteModal" class="modal">
+  <div class="modal-panel">
+    <h2>Datos del Cliente</h2>
+    <div class="tab-content cliente-grid">
+
+      <!-- Ahora nombre a full-width -->
+      <label class="full-width">
+        Nombre* 
+        <input type="text" id="cliente-nombre">
+      </label>
+
+      <label class="half-width">
+        Teléfono 
+        <input type="text" id="cliente-telefono">
+      </label>
+      <label class="half-width">
+        Dirección 
+        <input type="text" id="cliente-direccion">
+      </label>
+      <label class="half-width">
+        Localidad 
+        <input type="text" id="cliente-localidad">
+      </label>
+      <label class="half-width">
+        Código Postal 
+        <input type="text" id="cliente-cp">
+      </label>
+      <label class="half-width">
+        Provincia 
+        <input type="text" id="cliente-provincia">
+      </label>
+
+      <label class="full-width">
+        Email 
+        <input type="email" id="cliente-email">
+      </label>
+
+      <!-- CUIT: oninput, maxlength, placeholder estático -->
+      <label class="half-width">
+        CUIT 
+        <input
+          type="text"
+          id="cliente-cuit"
+          oninput="formatearCUIT(this)"
+          maxlength="13"
+          inputmode="numeric"
+          placeholder="__.__ ________._"
+        >
+      </label>
+
+      <!-- Cond. IVA se oculta/visibiliza desde JS -->
+      <label class="half-width" id="label-cond-iva" style="display:none">
+        Cond. IVA* 
+        <select id="cliente-cond-iva">
+          <option value="">Seleccionar</option>
+          <option>Responsable Inscripto</option>
+          <option>Monotributo</option>
+        </select>
+      </label>
+
+      <!-- Nuevos campos debajo de CUIT -->
+      <label class="half-width">
+        Expreso 
+        <input type="text" id="cliente-expreso">
+      </label>
+      <label class="half-width">
+        Condición de Venta 
+        <input type="text" id="cliente-condventa">
+      </label>
+      <label class="half-width">
+        Vendedor 
+        <input type="text" id="cliente-vendedor">
+      </label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancelar" onclick="cerrarClienteModal()">Cancelar</button>
+      <button class="guardar" onclick="guardarCliente()">Guardar Cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detalle del Pedido -->
+<div id="detalleModal" class="modal">
+  <div class="modal-panel">
+    <h2>Detalle del Pedido</h2>
+  <div class="detalle-cliente">
+    Cliente: <strong id="detalleClienteNombre"></strong>
+  </div>
+    <div class="table-wrapper">
+      <table id="tablaDetalle">
+      <thead>
+        <tr><th>Artículo</th><th>Color</th><th>Cant.</th><th>Observaciones</th><th>Acción</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    </div>
+    <div id="totalPares">Total: 0 pares</div>
+    <div class="modal-footer">
+      <button class="cancelar" onclick="cerrarDetalleModal()">Cancelar</button>
+      <button class="guardar guardar-verde" onclick="guardarPedidoFinal()">Guardar Pedido</button>
+    </div>
+  </div>
+</div>
+
 <script>
 $(function(){
   const baseURL = "https://raw.githubusercontent.com/lunghi95/wix360/refs/heads/main/";
@@ -661,52 +768,6 @@ function updateProductTitle(prodNum){
 });
 </script>
 
-<!-- Modal Pedido -->
-<div id="pedidoModal" class="modal" style="display: none; align-items: center; justify-content: center;">
-  <div class="modal-panel">
-    <div class="tabs" id="tabs-nav" style="display: none;">
-  <button class="tab active" onclick="mostrarSolapa('cabecera')">Cabecera</button>
-  <button class="tab" id="detalle-tab" onclick="mostrarSolapa('detalle')">Detalle</button>
-</div>
-
-    <div class="tab-content" id="tab-cabecera">
-      <label class="full-width">Nombre* <input type="text" id="pedido-nombre"></label>
-      <label class="half-width">Teléfono <input type="text" id="pedido-telefono"></label>
-      <label class="half-width">Dirección <input type="text" id="pedido-direccion"></label>
-      <label class="half-width">Localidad <input type="text" id="pedido-localidad"></label>
-      <label class="half-width">Código Postal <input type="text" id="pedido-cp"></label>
-      <label class="half-width">Provincia <input type="text" id="pedido-provincia"></label>
-      <label class="full-width">Email <input type="email" id="pedido-email"></label>
-      <label class="half-width">CUIT <input type="text" id="pedido-cuit" maxlength="13" oninput="formatearCUIT(this)"></label>
-      <label class="half-width" id="label-cond-iva" style="display:none">
-        Cond. IVA*<br>
-        <select id="pedido-cond-iva">
-          <option value="">Seleccionar</option>
-          <option value="Responsable Inscripto">Responsable Inscripto</option>
-          <option value="Monotributo">Monotributo</option>
-        </select>
-      </label>
-      <label class="half-width">Expreso <input type="text" id="pedido-expreso"></label>
-      <label class="half-width">Condición de venta <input type="text" id="pedido-condventa"></label>
-      <label class="half-width">Vendedor <input type="text" id="pedido-vendedor"></label>
-    </div>
-
-    <div class="tab-content" id="tab-detalle" style="display:none">
-      <table id="tablaDetalle">
-        <thead>
-          <tr><th>Artículo</th><th>Color</th><th>Cant.</th><th>Obs.</th><th></th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div id="totalPares">Total: 0 pares</div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="cancelar" onclick="cerrarPedidoModal()">Cancelar</button>
-      <button class="guardar" id="btnGuardarPedido" onclick="guardarPedidoFinal()">Guardar</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
