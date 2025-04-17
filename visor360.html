@@ -498,13 +498,48 @@
       <tbody></tbody>
     </table>
     </div>
-    <div id="totalPares">Total: 0 pares</div>
-    <div class="modal-footer">
-      <button class="cancelar" onclick="cerrarDetalleModal()">Cancelar</button>
-      <button class="guardar guardar-verde" onclick="guardarPedidoFinal()">Guardar Pedido</button>
+    <!-- Contenedor flex que alinea textarea a la izquierda, y total+botones a la derecha -->
+    <div class="footer-container" style="
+         display: flex;
+         justify-content: space-between;
+         align-items: flex-end;
+         gap: 20px;
+         margin-top: 12px;
+       ">
+
+      <!-- Observaciones generales al fondo izquierdo -->
+      <div class="general-observaciones" style="flex: 1;">
+        <textarea
+          id="observacionesGenerales"
+          placeholder="Observaciones generales"
+          rows="3"
+          style="
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            resize: vertical;
+          "
+        ></textarea>
+      </div>
+
+      <!-- Total y botones agrupados a la derecha -->
+      <div style="text-align: right;">
+        <div id="totalPares" style="margin-bottom: 8px; font-weight: 700; font-size: 1.1rem;">
+          Total: 0 pares
+        </div>
+        <div class="modal-footer" style="
+             display: inline-flex;
+             justify-content: flex-end;
+             gap: 10px;
+           ">
+          <button class="cancelar">Cancelar</button>
+          <button class="guardar">Guardar Pedido</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
 <script>
 $(function(){

@@ -65,7 +65,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 4px;
 }
 .modal-footer button {
   padding: 10px 18px;
@@ -110,13 +110,13 @@
 
 /* Reducir sólo el espacio entre título y subtítulo */
 #detalleModal .modal-panel h2 {
-  margin-bottom: 10px;    /* antes eran más, ahora queda muy junto */
+  margin-bottom: 4px;    /* antes eran más, ahora queda muy junto */
 }
 
 .detalle-cliente {
   font-size: 1rem;
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   color: #333;
 }
 
@@ -124,7 +124,7 @@
 .table-wrapper {
   flex: 1 1 auto;
   overflow-y: auto;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 /* Tabla responsive, layout automático */
