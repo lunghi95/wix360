@@ -1,9 +1,37 @@
 // Ya importado tras pedidoModule.js en HTML
 
 function abrirClienteModal() {
+  // Si ya existe clienteData, vuelca sus valores en el formulario
+  if (clienteData) {
+    document.getElementById("cliente-nombre").value     = clienteData.nombre     || "";
+    document.getElementById("cliente-telefono").value  = clienteData.telefono   || "";
+    document.getElementById("cliente-direccion").value = clienteData.direccion  || "";
+    document.getElementById("cliente-localidad").value = clienteData.localidad  || "";
+    document.getElementById("cliente-cp").value        = clienteData.cp         || "";
+    document.getElementById("cliente-provincia").value = clienteData.provincia  || "";
+    document.getElementById("cliente-email").value     = clienteData.email      || "";
+
+    // CUIT y Cond. IVA
+    document.getElementById("cliente-cuit").value      = clienteData.cuit       || "";
+    const labelIVA = document.getElementById("label-cond-iva");
+    if ((clienteData.cuit || "").replace(/\D/g,"").length === 11) {
+      labelIVA.style.display = "block";
+      document.getElementById("cliente-cond-iva").value = clienteData.condIVA || "";
+    } else {
+      labelIVA.style.display = "none";
+    }
+
+    // Nuevos campos Expreso, Cond. Venta y Vendedor
+    document.getElementById("cliente-expreso").value   = clienteData.expreso    || "";
+    document.getElementById("cliente-condventa").value = clienteData.condVenta  || "";
+    document.getElementById("cliente-vendedor").value  = clienteData.vendedor   || "";
+  }
+
+  // Finalmente, muestra el modal
   document.getElementById("clienteModal").style.display = "flex";
   document.getElementById("detalleModal").style.display = "none";
 }
+
 function cerrarClienteModal() {
   document.getElementById("clienteModal").style.display = "none";
 }
@@ -20,7 +48,10 @@ function guardarCliente() {
     provincia: document.getElementById("cliente-provincia").value,
     email: document.getElementById("cliente-email").value,
     cuit: document.getElementById("cliente-cuit").value,
-    condIVA: document.getElementById("cliente-cond-iva").value
+    condIVA: document.getElementById("cliente-cond-iva").value,
+    expreso: document.getElementById("cliente-expreso").value,
+    condVenta: document.getElementById("cliente-condventa").value,
+    vendedor: document.getElementById("cliente-vendedor").value
   };
   cerrarClienteModal();
   document.getElementById("btnAgregarArticulo").style.display = "block";
@@ -50,7 +81,7 @@ function renderizarDetallePedido() {
       <td><input type="number" value="${it.cantidad}" min="1" onchange="actualizarCantidad(${i},this.value)"></td>
       <td>${it.observaciones||''}</td>
       <td>
-        <button onclick="actualizarCantidadPrompt(${i})">✏️</button>
+        <button onclick="editarObservacionesPrompt(${i})">✏️</button>
         <button onclick="eliminarLinea(${i})">❌</button>
       </td>
     `;
@@ -64,6 +95,17 @@ function actualizarCantidad(i, v) {
   const c = parseInt(v);
   if (c>0) { pedidoActual[i].cantidad = c; renderizarDetallePedido(); }
 }
+
+function editarObservacionesPrompt(i) {
+  const actual = pedidoActual[i].observaciones || '';
+  const nueva = prompt("Editar observaciones (Talle, detalles, etc.):", actual);
+  // Si el usuario no canceló y puso algo (o vació la obs)
+  if (nueva !== null) {
+    pedidoActual[i].observaciones = nueva;
+    renderizarDetallePedido();
+  }
+}
+
 function actualizarCantidadPrompt(i) {
   const v = prompt("Nueva cantidad:", pedidoActual[i].cantidad);
   actualizarCantidad(i, v);

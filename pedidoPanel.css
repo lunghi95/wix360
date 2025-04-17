@@ -221,3 +221,19 @@
   font-size: 1.1rem;
   margin: 5px 0;
 }
+
+/* Icono lápiz junto al nombre del cliente */
+.edit-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-left: 6px;
+  vertical-align: middle;
+  padding: 2px;
+  transition: background-color 0.2s;
+}
+.edit-icon:hover {
+  background-color: rgba(0,0,0,0.05);
+  border-radius: 4px;
+}

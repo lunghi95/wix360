@@ -32,27 +32,42 @@ const variantesBlackTotal = {
 };
 
 /**
- * Agrega un artículo al pedido, gestionando variantes Black/Black Total
+ * Agrega un artículo al pedido, primero resolviendo variantes especiales,
+ * luego comprobando duplicados sobre la variante elegida,
+ * y al final insertando o editando la línea.
  */
 function agregarArticuloAlPedido(articulo, color) {
-  const artKey = articulo.toUpperCase().trim();
-  const colKey = color.toUpperCase().trim();
+  const artKey   = articulo.toUpperCase().trim();
+  let   colKey   = color.toUpperCase().trim();
 
-  // Si hay variante especial y se seleccionó "BLACK"
-  if (variantesBlackTotal[artKey] && colKey === "BLACK") {
-    const opciones = variantesBlackTotal[artKey];
-    const seleccion = prompt(
-      `¿Qué variante querés agregar de ${artKey}?\n` +
-        opciones.map((v, i) => `${i + 1}. ${v}`).join('\n')
-    );
-    if (!seleccion || isNaN(seleccion) || seleccion < 1 || seleccion > opciones.length) {
-      alert("Selección inválida.");
-      return;
+  // — 1) Variante especial Black / Black Total —
+  if (variantesBlackTotal[artKey] && color.toUpperCase().trim() === "BLACK") {
+    const opciones  = variantesBlackTotal[artKey];
+    const textoOpts = opciones.map((v,i) => `${i+1}. ${v}`).join("\n");
+    const sel       = prompt(`¿Qué variante querés agregar de ${artKey}?\n${textoOpts}`);
+    if (!sel || isNaN(sel) || sel < 1 || sel > opciones.length) {
+      return alert("Selección inválida.");
     }
-    const variante = opciones[parseInt(seleccion) - 1];
-    return agregarLinea(artKey, variante);
+    colKey = opciones[parseInt(sel,10)-1];  // sustituye BLACK por la variante elegida
   }
-  // Variante normal
+
+  // — 2) Duplicados sobre la variante final —
+  const idx = pedidoActual.findIndex(
+    it => it.articulo === artKey && it.color === colKey
+  );
+  if (idx >= 0) {
+    const existente = pedidoActual[idx].cantidad;
+    if (confirm(
+      `El artículo ${artKey} ${colKey} ya tiene ${existente} pares.\n` +
+      `¿Querés sumar más pares?`
+    )) {
+      // reutiliza tu prompt de cantidad
+      return window.actualizarCantidadPrompt(idx);
+    }
+    return; // si cancela, no hace nada
+  }
+
+  // — 3) Nueva línea con la variante final —
   agregarLinea(artKey, colKey);
 }
 
