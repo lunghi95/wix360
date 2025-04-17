@@ -535,8 +535,10 @@
              justify-content: flex-end;
              gap: 10px;
            ">
-          <button class="cancelar">Cancelar</button>
-          <button class="guardar">Guardar Pedido</button>
+          <div class="modal-footer" style="…">
+            <button class="cancelar" onclick="cerrarDetalleModal()">Cancelar</button>
+            <button class="guardar" onclick="guardarPedidoFinal()">Guardar Pedido</button>
+          </div>
         </div>
       </div>
     </div>

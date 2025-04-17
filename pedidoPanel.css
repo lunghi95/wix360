@@ -237,3 +237,41 @@
   background-color: rgba(0,0,0,0.05);
   border-radius: 4px;
 }
+
+/* === Ajustes responsivos para pantallas pequeñas === */
+@media (max-width: 600px) {
+  /* 1) Pasa el grid de Cabecera a una sola columna */
+  .tab-content.cliente-grid {
+    grid-template-columns: 1fr;
+    gap: 10px 0;
+  }
+  .tab-content.cliente-grid label.full-width,
+  .tab-content.cliente-grid label.half-width {
+    grid-column: 1 / -1; /* cada campo ocupa toda la fila */
+  }
+
+  /* 2) Reduce un poco las fuentes y los inputs */
+  .modal-panel {
+    padding: 10px;
+  }
+  .modal-panel h2 {
+    font-size: 1.3rem;
+  }
+  .tab-content.cliente-grid input,
+  .tab-content.cliente-grid select,
+  .general-observaciones textarea,
+  #tablaDetalle th,
+  #tablaDetalle td {
+    font-size: 0.85rem;
+  }
+
+  /* 3) Ajusta el footer para que quede más apretado */
+  .footer-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .footer-container > div:last-child {
+    text-align: left;
+  }
+}
