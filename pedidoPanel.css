@@ -274,4 +274,11 @@
   .footer-container > div:last-child {
     text-align: left;
   }
+
+  #productTitle {
+    top: auto;         /* Anulamos el top:10px original */
+    bottom: 10%;      /* Lo colocamos 10px sobre el borde inferior */
+    font-size: 1.5rem; /* Ajuste opcional de tamaño */
+    white-space: nowrap; /* Evitar que se rompa la línea */
+  }
 }
