@@ -1,7 +1,7 @@
 function inicializarBotonesPedido() {
   const container = document.createElement("div");
   container.id = "pedido-buttons";
-  container.style.cssText = 'position:absolute;top:20px;left:20px;z-index:9999;display:flex;flex-direction:column;gap:10px';
+  container.style.cssText = 'position:absolute;top:20px;left:20px;z-index:20;display:flex;flex-direction:column;gap:10px';
 
   const btnPedido = document.createElement("button");
   btnPedido.textContent = "📝 Pedido";
