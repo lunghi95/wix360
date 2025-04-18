@@ -401,3 +401,32 @@
     white-space: nowrap;
   }
 }
+
+/* =================================================
+   Modal “Exportar Pedido”
+   ================================================= */
+   #exportModal .modal-panel {
+    max-width: 400px;
+    width: 90%;
+    padding: 20px;
+  }
+  .export-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .export-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    background-color: #007bff;
+    color: #fff;
+    transition: background-color 0.2s;
+  }
+  .export-btn:hover {
+    background-color: #0056b3;
+  }
+  

@@ -11,6 +11,8 @@
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
   <!-- Diccionario con Artículo y Color -->
   <script src="productInfo.js"></script>
+  <!-- SheetJS para generar XLSX -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   
   <!-- Estilos / Scripts de pedidos -->
   <link rel="stylesheet" href="pedidoPanel.css">
@@ -542,6 +544,21 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+<!-- Modal Exportar Pedido -->
+<div id="exportModal" class="modal" style="display:none; align-items:center; justify-content:center;">
+  <div class="modal-panel">
+    <h2>Exportar Pedido</h2>
+    <div class="export-buttons">
+      <button id="btnDownloadExcel" class="export-btn">📥 Descargar Excel</button>
+      <button id="btnCopyText"    class="export-btn">📋 Copiar texto plano</button>
+      <button id="btnShare"       class="export-btn">📲 Compartir…</button>
+      <button id="btnMailTo"      class="export-btn">📧 Enviar por mail</button>
+      <button id="btnNewPedido"   class="export-btn">🔄 Nuevo Pedido</button>
+    </div>
+  </div>
+</div>
 
 <script>
 $(function(){

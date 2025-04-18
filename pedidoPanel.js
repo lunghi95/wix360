@@ -67,6 +67,14 @@ function cerrarDetalleModal() {
   document.getElementById("detalleModal").style.display = "none";
 }
 
+// ——————————— Modal Exportar ———————————
+function abrirExportModal() {
+  document.getElementById("exportModal").style.display = "flex";
+}
+function cerrarExportModal() {
+  document.getElementById("exportModal").style.display = "none";
+}
+
 function renderizarDetallePedido() {
   // Asigna el nombre de cliente cargado
   document.getElementById('detalleClienteNombre').textContent = clienteData.nombre || '';
@@ -122,18 +130,15 @@ function eliminarLinea(i) {
 }
 
 function guardarPedidoFinal() {
-  if (pedidoActual.length===0) {
+  if (pedidoActual.length === 0) {
     alert("No hay artículos en el pedido.");
     return;
   }
-  // aquí exportar XLSX o compartir
-  alert("✅ Pedido listo para exportar.");
-  // reiniciar todo
-  pedidoActual = [];
-  clienteData = null;
+  // Cerrar el detalle y abrir exportación
   cerrarDetalleModal();
-  document.getElementById("btnAgregarArticulo").style.display = "none";
+  abrirExportModal();
 }
+
 
 function formatearCUIT(input) {
   // 1) extrae sólo dígitos, máxima longitud 11
@@ -197,8 +202,156 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     input.addEventListener('input', () => fitTextInInput(input));
   });
-  
+  // ============== Botones de Exportar ==============
+  document.getElementById("btnDownloadExcel").addEventListener("click", generateExcel);
+  document.getElementById("btnCopyText"   ).addEventListener("click", copyTextPlain);
+  document.getElementById("btnShare"      ).addEventListener("click", sharePedido);
+  document.getElementById("btnMailTo"     ).addEventListener("click", mailPedido);
+  document.getElementById("btnNewPedido"  ).addEventListener("click", () => {
+    // reiniciar todo
+    pedidoActual = [];
+    clienteData = null;
+    cerrarExportModal();
+    // volvemos al cliente
+    abrirClienteModal();
+    document.getElementById("btnAgregarArticulo").style.display = "none";
+  });
 });
+
+/** Genera y descarga el Excel con dos hojas */
+function generateExcel() {
+  // 1) Nueva workbook
+  const wb = XLSX.utils.book_new();
+
+  // 2) Hoja “Detalle”: columnas A= Código, C= Cantidad, F= Observaciones
+  const sheet1 = [];
+  // opcional: encabezado
+  sheet1.push(['Código', '', 'Cantidad', '', '', 'Observaciones']);
+  pedidoActual.forEach(it => {
+    sheet1.push([
+      it.codigo,
+      '',
+      it.cantidad,
+      '',
+      '',
+      it.observaciones || ''
+    ]);
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
+
+  // 3) Hoja “Cliente”: todos los datos + Observaciones generales
+  const sheet2 = [];
+  const c = clienteData;
+  sheet2.push(['Nombre',            c.nombre        || '']);
+  sheet2.push(['Teléfono',          c.telefono      || '']);
+  sheet2.push(['Dirección',         c.direccion     || '']);
+  sheet2.push(['Localidad',         c.localidad     || '']);
+  sheet2.push(['Código Postal',     c.cp            || '']);
+  sheet2.push(['Provincia',         c.provincia     || '']);
+  sheet2.push(['Email',             c.email         || '']);
+  sheet2.push(['CUIT',              c.cuit          || '']);
+  sheet2.push(['Cond. IVA',         c.condIVA       || '']);
+  sheet2.push(['Expreso',           c.expreso       || '']);
+  sheet2.push(['Condición de Venta',c.condVenta     || '']);
+  sheet2.push(['Vendedor',          c.vendedor      || '']);
+  const genObs = document.getElementById('observacionesGenerales').value;
+  sheet2.push(['Observaciones generales', genObs || '']);
+  const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
+  XLSX.utils.book_append_sheet(wb, ws2, 'Cliente');
+
+  // 4) Nombre de archivo
+  const hoy = new Date();
+  const dd = String(hoy.getDate()).padStart(2,'0');
+  const mm = String(hoy.getMonth()+1).padStart(2,'0');
+  const yyyy = hoy.getFullYear();
+  const safeName = c.nombre.replace(/\s+/g,'_');
+  const filename = `NP_${safeName}_${dd}-${mm}-${yyyy}.xlsx`;
+
+  // 5) Descargar
+  XLSX.writeFile(wb, filename);
+}
+
+/** Copia texto plano al portapapeles */
+function copyTextPlain() {
+  const c = clienteData;
+  let txt = `Datos del cliente:\n` +
+            `Nombre: ${c.nombre}\n` +
+            `Teléfono: ${c.telefono}\n` +
+            `Dirección: ${c.direccion}\n` +
+            `Localidad: ${c.localidad}\n` +
+            `C.P.: ${c.cp}\n` +
+            `Provincia: ${c.provincia}\n` +
+            `Email: ${c.email}\n` +
+            `CUIT: ${c.cuit}\n` +
+            `Cond. IVA: ${c.condIVA}\n` +
+            `Expreso: ${c.expreso}\n` +
+            `Cond. Venta: ${c.condVenta}\n` +
+            `Vendedor: ${c.vendedor}\n\n` +
+            `Observaciones generales:\n${document.getElementById('observacionesGenerales').value}\n\n` +
+            `Detalle del pedido:\nCódigo | Cantidad | Observaciones\n`;
+  pedidoActual.forEach(it => {
+    txt += `${it.codigo} | ${it.cantidad} | ${it.observaciones || ''}\n`;
+  });
+  navigator.clipboard.writeText(txt).then(() => {
+    alert('✅ Pedido copiado al portapapeles.');
+  });
+}
+
+/** Usa la Web Share API para compartir XLSX (si está disponible) */
+async function sharePedido() {
+  if (!navigator.canShare || !navigator.canShare({ files: [] })) {
+    return alert('Compartir no está soportado en este navegador.');
+  }
+  // recrear workbook como en generateExcel(), pero en ArrayBuffer
+  const wb = XLSX.utils.book_new();
+  // … copiar aquí la construcción de ws1 y ws2 … (idem generateExcel)
+  // para no repetir: podemos llamar a generateExcel y capturar el buffer, 
+  // pero por claridad reescribimos:
+  const sheet1 = [['Código','','Cantidad','','','Observaciones']];
+  pedidoActual.forEach(it => sheet1.push([it.codigo,'',it.cantidad,'','',it.observaciones||'']));
+  const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
+
+  const sheet2 = [];
+  const c = clienteData;
+  sheet2.push(['Nombre',c.nombre||'']);
+  sheet2.push(['Teléfono',c.telefono||'']);
+  // … resto campos …
+  const genObs = document.getElementById('observacionesGenerales').value;
+  sheet2.push(['Observaciones generales', genObs||'']);
+  const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
+  XLSX.utils.book_append_sheet(wb, ws2, 'Cliente');
+
+  // buffer
+  const wbout = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  const blob  = new Blob([wbout], { type: 'application/octet-stream' });
+  const fileName = `NP_${c.nombre.replace(/\s+/g,'_')}.xlsx`;
+  const file = new File([blob], fileName, { type: blob.type });
+
+  try {
+    await navigator.share({
+      title: `Pedido ${c.nombre}`,
+      files: [file],
+      text: 'Aquí tenés el pedido.'
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+/** Abre el cliente de correo con subject+body (no adjunta) */
+function mailPedido() {
+  const c = clienteData;
+  const subject = encodeURIComponent(`Pedido NP ${c.nombre}`);
+  // reusar el texto plano
+  let body = encodeURIComponent(
+    `Datos del cliente:\nNombre: ${c.nombre}\nTeléfono: ${c.telefono}\n…\n\n` +
+    `Detalle:\n` +
+    pedidoActual.map(it => `${it.codigo} | ${it.cantidad} | ${it.observaciones||''}`).join('\n')
+  );
+  window.location.href = `mailto:?subject=${subject}&body=${body}`;
+}
 
 
 
