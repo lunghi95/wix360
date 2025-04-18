@@ -6,29 +6,29 @@ let clienteData = null;
 
 // Códigos internos por artículo y color
 const codigosInternos = {
-  "JJ9825-5": { "BLACK": 22511, "WHITE": 22512, "BLACK TOTAL": 22531 },
-  "JJ28198-3": { "BLACK": 22503, "GOLD": 22504 },
-  "JJ28270-2A": { "BLACK": 22523, "GOLD": 22524 },
-  "JJ88718-13": { "BLACK": 22497, "YELLOW": 22498 },
-  "JJ88718-4": { "BLACK": 22492, "BEIGE": 22493, "BLACK TOTAL": 22530 },
-  "JJ88572-19": { "BLACK": 22507, "GOLD": 22508 },
-  "JJ9419-17": { "BLACK": 22510, "CAMEL": 22509 },
-  "JJ88718-14": { "BLACK": 22519, "WHITE": 22520, "BLACK TOTAL": 22529 },
-  "JJ88718-8": { "BLACK": 22496, "OFF WHITE": 22494 },
-  "JJ28270-6": { "BLACK": 22521, "CAMEL": 22522 },
-  "JJ9912-5": { "BLACK": 22518, "OFF WHITE": 22517 },
-  "JJ28279-1": { "BLACK": 22502, "OFF WHITE": 22501 },
-  "JJ88638-3": { "BLACK": 22514, "BEIGE": 22513 },
-  "JJ28198-1": { "GOLD": 22505, "BLACK": 22506 },
-  "JJ88572-18": { "BLACK": 22500, "BEIGE": 22499 },
-  "JJ88718-5": { "WHITE": 22516, "BLACK": 22515 }
+  "JJ9825-5": { "Black": 22511, "White": 22512, "Black Total": 22531 },
+  "JJ28198-3": { "Black": 22503, "Gold": 22504 },
+  "JJ28270-2A": { "Black": 22523, "Gold": 22524 },
+  "JJ88718-13": { "Black": 22497, "Yellow": 22498 },
+  "JJ88718-4": { "Black": 22492, "Beige": 22493, "Black Total": 22530 },
+  "JJ88572-19": { "Black": 22507, "Gold": 22508 },
+  "JJ9419-17": { "Black": 22510, "Camel": 22509 },
+  "JJ88718-14": { "Black": 22519, "White": 22520, "Black Total": 22529 },
+  "JJ88718-8": { "Black": 22496, "Off White": 22494 },
+  "JJ28270-6": { "Black": 22521, "Camel": 22522 },
+  "JJ9912-5": { "Black": 22518, "Off White": 22517 },
+  "JJ28279-1": { "Black": 22502, "Off White": 22501 },
+  "JJ88638-3": { "Black": 22514, "Beige": 22513 },
+  "JJ28198-1": { "Gold": 22505, "Black": 22506 },
+  "JJ88572-18": { "Black": 22500, "Beige": 22499 },
+  "JJ88718-5": { "White": 22516, "Black": 22515 }
 };
 
 // Artículos con variantes especial Black / Black Total
 const variantesBlackTotal = {
-  "JJ9825-5": ["BLACK", "BLACK TOTAL"],
-  "JJ88718-14": ["BLACK", "BLACK TOTAL"],
-  "JJ88718-4": ["BLACK", "BLACK TOTAL"]
+  "JJ9825-5": ["Black", "Black Total"],
+  "JJ88718-14": ["Black", "Black Total"],
+  "JJ88718-4": ["Black", "Black Total"]
 };
 
 /**
@@ -37,18 +37,18 @@ const variantesBlackTotal = {
  * y al final insertando o editando la línea.
  */
 function agregarArticuloAlPedido(articulo, color) {
-  const artKey   = articulo.toUpperCase().trim();
-  let   colKey   = color.toUpperCase().trim();
+  const artKey = articulo.toUpperCase().trim();
+  let   colKey = color.trim();  // dejamos la capitalización tal cual viene del map
 
   // — 1) Variante especial Black / Black Total —
-  if (variantesBlackTotal[artKey] && color.toUpperCase().trim() === "BLACK") {
+  if (variantesBlackTotal[artKey] && color.trim().toLowerCase() === "black") {
     const opciones  = variantesBlackTotal[artKey];
     const textoOpts = opciones.map((v,i) => `${i+1}. ${v}`).join("\n");
     const sel       = prompt(`¿Qué variante querés agregar de ${artKey}?\n${textoOpts}`);
     if (!sel || isNaN(sel) || sel < 1 || sel > opciones.length) {
       return alert("Selección inválida.");
     }
-    colKey = opciones[parseInt(sel,10)-1];  // sustituye BLACK por la variante elegida
+    colKey = opciones[parseInt(sel,10)-1];  // ¡ojo! esa variante ya viene “Capitalizada”
   }
 
   // — 2) Duplicados sobre la variante final —
@@ -76,7 +76,7 @@ function agregarArticuloAlPedido(articulo, color) {
  */
 function agregarLinea(articulo, color, extraObs = '') {
   const artKey = articulo.toUpperCase().trim();
-  const colKey = color.toUpperCase().trim();
+  const colKey = color.trim();   // mantenemos la forma “Black”, “Beige”…
   const codigo = codigosInternos[artKey]?.[colKey];
   if (!codigo) {
     alert(`❌ No se encontró el código interno para ${artKey} - ${colKey}`);

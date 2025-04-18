@@ -79,11 +79,17 @@ function renderizarDetallePedido() {
       <td>${it.articulo}</td>
       <td>${it.color}</td>
       <td><input type="number" value="${it.cantidad}" min="1" onchange="actualizarCantidad(${i},this.value)"></td>
-      <td>${it.observaciones||''}</td>
-      <td>
-        <button onclick="editarObservacionesPrompt(${i})">✏️</button>
-        <button onclick="eliminarLinea(${i})">❌</button>
-      </td>
+      <td class="obs-cell">
+  ${it.observaciones||''}
+  <button class="edit-icon" onclick="editarObservacionesPrompt(${i})">
+    <img src="Assets/edit-2.svg" alt=✏️/>
+  </button>
+</td>
+<td>
+  <button class="trash-icon" onclick="eliminarLinea(${i})">
+    <img src="Assets/trash-duotone.svg" alt=❌/>
+  </button>
+</td>
     `;
     tbody.appendChild(tr);
     total += it.cantidad;
@@ -191,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     input.addEventListener('input', () => fitTextInInput(input));
   });
+  
 });
 
 

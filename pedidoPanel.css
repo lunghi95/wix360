@@ -103,7 +103,7 @@
 */
 #detalleModal .modal-panel {
   max-width: 800px;
-  width: 80%;
+  width: 85%;
   max-height: 80vh;
   padding: 0px 20px 20px;
 }
@@ -148,7 +148,7 @@
 
 /* Filas de cuerpo */
 #tablaDetalle tbody td {
-  padding: 8px;
+  padding: 4px;
   border: 1px solid #ddd;
   background: #fafafa;
   white-space: nowrap;
@@ -166,7 +166,7 @@
 
 /* Input cantidad ajustado y redondeado */
 #tablaDetalle td:nth-child(3) input {
-  width: 6ch;
+  width: 5.5ch;
   border: 1px solid #ccc;
   border-radius: 4px;
   padding: 2px;
@@ -177,7 +177,11 @@
 /* Column Acciones fijo */
 #tablaDetalle th:nth-child(5),
 #tablaDetalle td:nth-child(5) {
-  width: 3rem;
+  width: 1%;
+  white-space: nowrap;
+  text-align: center;
+  margin: 0;
+  padding: 0;
 }
 
 /* Columnas Artículo y Color mínimo al contenido */
@@ -189,14 +193,50 @@
 }
 
 /* Otras columnas (especialmente Observaciones) toman el resto */
+.obs-cell {
+  position: relative;
+  padding-right: 1.5em; /* espacio para el lápiz */
+}
+
+/* 2B) Posicionar el pencil SVG en la esquina */
+.obs-cell .edit-icon {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 2C) Ajustar tamaño del SVG */
+.obs-cell .edit-icon img {
+  width: 18px;
+  height: 20px;
+  display: block;
+}
+
+/* 2C) Ajustar tamaño del SVG */
+#tablaDetalle .trash-icon img {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* Sobrescribe solo el edit-icon del Cliente */
+#btnEditarCliente img {
+  width: 24px;
+  height: 24px;
+}
 
 /* Botones ícono en acciones */
 #tablaDetalle td:nth-child(5) button {
   background: none;
   border: none;
   font-size: 1rem;
-  margin: 0 2px;
-  padding: 4px;
+  margin: 0;
+  padding: 2px;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.2s;
@@ -240,56 +280,117 @@
 
 /* === Ajustes responsivos para pantallas pequeñas === */
 @media (max-width: 600px) {
-  /* Restaurar grid 2 columnas en móvil */
+  /* 1) Make two equal-ish columns of ~45% each, with a 5% gap */
   .tab-content.cliente-grid {
-    display: grid;
-    grid-template-columns: 48% 48%;
-    gap: 7px 15px;
-  }
-  .tab-content.cliente-grid label.half-width {
-    grid-column: span 1 !important;
-  }
-  .tab-content.cliente-grid label.full-width {
-    grid-column: 1 / -1 !important;
+    grid-template-columns: 45% 45%;
+    gap: 10px 5%;
   }
 
-  /* 2) Reduce un poco las fuentes y los inputs */
+  /* 2) Ensure labels don’t accidentally span both columns */
+  .tab-content.cliente-grid label.full-width {
+    grid-column: 1 / -1; /* only the “Nombre” field still spans both */
+  }
+  .tab-content.cliente-grid label.half-width {
+    grid-column: auto;   /* this restores half‑width placement */
+  }
+
+  /* 3) Tweak padding & font sizes slightly for mobile if you like */
   .modal-panel {
     padding: 10px;
   }
   .modal-panel h2 {
     font-size: 1.3rem;
-    margin-bottom: 6px;
-    margin-top: 5px;
+    margin: .25em 0;
   }
   .tab-content.cliente-grid input,
   .tab-content.cliente-grid select {
-    padding: 6px 10px;
     font-size: 0.85rem;
-    
+    padding: 6px 10px;
   }
+
+  /* ==========================
+     Móvil: footer Detalle Pedido
+     ========================== */
+  #detalleModal .footer-container {
+    /* en vez de columna, dos columnas lado a lado */
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    /* menos separación entre columnas */
+    gap: 10px !important;
+    /* suaviza el margin-top que venía inline */
+    margin-top: 8px !important;
+  }
+  /* ── VERSIÓN MÓVIL: DISTRIBUIR OBSERVACIONES / TOTAL + BOTONES EN 2 COLUMNAS ── */
+  .footer-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* textarea arriba al nivel de Total */
+  #detalleModal .footer-container .general-observaciones {
+    margin-top: 0 !important;
+    flex: 1 1 auto;
+  }
+  /* Observaciones generales primero, en la columna izquierda */
+  .footer-container > .general-observaciones {
+    flex: 1 1 auto;
+  min-width: 120px; /* opcional, para no dejarlo demasiado estrecho */
+  }
+
+  /* bloque Total+botones en la derecha */
+  #detalleModal .footer-container > div:last-child {
+    flex: 0 0 auto;
+    margin-top: 0 !important;
+    text-align: left; /* para que botones queden alineados a la izquierda de su bloque */
+  }
+  /* Total + botones en la columna derecha, orden vertical */
+  .footer-container > div:not(.general-observaciones) {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Total alineado a la izquierda */
+    gap: 6px;
+  }
+
+  /* menos hueco entre Total y los dos botones */
+  #detalleModal .footer-container > div:last-child #totalPares {
+    margin-bottom: 4px !important;
+  }
+  /* Alineo el texto del Total a la izquierda */
+  .footer-container > div:not(.general-observaciones) #totalPares {
+    text-align: left;
+    margin: 0;
+  }
+
+  #detalleModal .footer-container > div:last-child .modal-footer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin: 0 !important;
+  }
+  /* Hago que los botones llenen el ancho de su “columna” */
+  .footer-container > div:not(.general-observaciones) .modal-footer {
+    flex-direction: column;
+    width: auto;
+    gap: 6px;
+  }
+  .footer-container > div:not(.general-observaciones) .modal-footer button {
+    width: auto;
+  }
+
   .general-observaciones textarea,
   #tablaDetalle th,
   #tablaDetalle td {
     font-size: 0.85rem;
   }
 
-    /* Botones más compactos */
-    .modal-footer button {
-      padding: 8px 14px;
-      font-size: 0.9rem;
-      margin-top: 5px;
-    } 
-
-  /* 3) Ajusta el footer para que quede más apretado */
-  .footer-container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-  .footer-container > div:last-child {
-    text-align: left;
-  }
+  /* Botones más compactos */
+  .modal-footer button {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    margin-top: 5px;
+  } 
 
   #productTitle {
     top: auto !important;
