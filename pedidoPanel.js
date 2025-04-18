@@ -150,3 +150,48 @@ function formatearCUIT(input) {
   document.getElementById('label-cond-iva').style.display =
     (raw.length === 11) ? 'block' : 'none';
 }
+
+function fitTextInInput(input) {
+  // 0) Reset inline para partir siempre del tamaño CSS original
+  input.style.fontSize = '';
+
+  // 1) Leo el tamaño original desde CSS
+  const computed     = getComputedStyle(input);
+  const originalSize = parseFloat(computed.fontSize) || 16;
+  const minSize      = 8;
+
+  // 2) Toma el tamaño actual inline (o el original si no hay override)
+  let fontSize = parseFloat(input.style.fontSize) || originalSize;
+
+  // 3) Reducir hasta que quepa o hasta el mínimo
+  while (input.scrollWidth > input.clientWidth && fontSize > minSize) {
+    fontSize = Math.max(fontSize - 0.5, minSize);
+    input.style.fontSize = fontSize + 'px';
+  }
+
+  // 4) Aumentar hasta el original, pero sin provocar overflow
+  while (fontSize < originalSize) {
+    const next = fontSize + 0.5;
+    input.style.fontSize = next + 'px';
+    if (input.scrollWidth > input.clientWidth) {
+      // si rebasa, deshacer ese último +0.5px y salir
+      input.style.fontSize = fontSize + 'px';
+      break;
+    }
+    fontSize = next;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const campos = document.querySelectorAll('#clienteModal input, #clienteModal select');
+  campos.forEach(input => {
+    input.addEventListener('focus', () => {
+      // al enfocar quitamos cualquier override inline
+      input.style.fontSize = '';
+    });
+    input.addEventListener('input', () => fitTextInInput(input));
+  });
+});
+
+
+

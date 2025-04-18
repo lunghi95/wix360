@@ -240,14 +240,17 @@
 
 /* === Ajustes responsivos para pantallas pequeñas === */
 @media (max-width: 600px) {
-  /* 1) Pasa el grid de Cabecera a una sola columna */
+  /* Restaurar grid 2 columnas en móvil */
   .tab-content.cliente-grid {
-    grid-template-columns: 1fr;
-    gap: 10px 0;
+    display: grid;
+    grid-template-columns: 48% 48%;
+    gap: 7px 15px;
   }
-  .tab-content.cliente-grid label.full-width,
   .tab-content.cliente-grid label.half-width {
-    grid-column: 1 / -1; /* cada campo ocupa toda la fila */
+    grid-column: span 1 !important;
+  }
+  .tab-content.cliente-grid label.full-width {
+    grid-column: 1 / -1 !important;
   }
 
   /* 2) Reduce un poco las fuentes y los inputs */
@@ -256,14 +259,27 @@
   }
   .modal-panel h2 {
     font-size: 1.3rem;
+    margin-bottom: 6px;
+    margin-top: 5px;
   }
   .tab-content.cliente-grid input,
-  .tab-content.cliente-grid select,
+  .tab-content.cliente-grid select {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    
+  }
   .general-observaciones textarea,
   #tablaDetalle th,
   #tablaDetalle td {
     font-size: 0.85rem;
   }
+
+    /* Botones más compactos */
+    .modal-footer button {
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      margin-top: 5px;
+    } 
 
   /* 3) Ajusta el footer para que quede más apretado */
   .footer-container {
@@ -276,9 +292,11 @@
   }
 
   #productTitle {
-    top: auto;         /* Anulamos el top:10px original */
-    bottom: 10%;      /* Lo colocamos 10px sobre el borde inferior */
-    font-size: 1.5rem; /* Ajuste opcional de tamaño */
-    white-space: nowrap; /* Evitar que se rompa la línea */
+    top: auto !important;
+    bottom: 60px !important;  /* ajusta este valor a tu gusto */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.4rem;         /* si quieres bajarlo un poco en móvil */
+    white-space: nowrap;
   }
 }
