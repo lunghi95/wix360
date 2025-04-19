@@ -205,7 +205,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============== Botones de Exportar ==============
   document.getElementById("btnDownloadExcel").addEventListener("click", generateExcel);
   document.getElementById("btnCopyText"   ).addEventListener("click", copyTextPlain);
-  document.getElementById("btnShare"      ).addEventListener("click", sharePedido);
+  document.getElementById("btnWhatsapp"   ).addEventListener("click", () => {
+    const texto = encodeURIComponent( generarTextoPlanoPedido() );
+    const url   = `https://api.whatsapp.com/send?text=${texto}`;
+    window.open(url, '_blank');
+  });
   document.getElementById("btnMailTo"     ).addEventListener("click", mailPedido);
   document.getElementById("btnNewPedido"  ).addEventListener("click", () => {
     // reiniciar todo
@@ -272,8 +276,8 @@ function generateExcel() {
   XLSX.writeFile(wb, filename);
 }
 
-/** Copia texto plano al portapapeles */
-function copyTextPlain() {
+/** Genera y devuelve el texto plano completo del pedido */
+function generarTextoPlanoPedido() {
   const c = clienteData;
   let txt = `Datos del cliente:\n` +
             `Nombre: ${c.nombre}\n` +
@@ -289,10 +293,16 @@ function copyTextPlain() {
             `Cond. Venta: ${c.condVenta}\n` +
             `Vendedor: ${c.vendedor}\n\n` +
             `Observaciones generales:\n${document.getElementById('observacionesGenerales').value}\n\n` +
-            `Detalle del pedido:\nCódigo | Cantidad | Observaciones\n`;
+            `Detalle del pedido:\nCódigo| |Cantidad| | |Observaciones\n`;
   pedidoActual.forEach(it => {
-    txt += `${it.codigo} | ${it.cantidad} | ${it.observaciones || ''}\n`;
+    txt += `${it.codigo}| |${it.cantidad}| | |${it.observaciones || ''}\n`;
   });
+  return txt;
+}
+
+/** Copia texto plano al portapapeles */
+function copyTextPlain() {
+  const txt = generarTextoPlanoPedido();
   navigator.clipboard.writeText(txt).then(() => {
     alert('✅ Pedido copiado al portapapeles.');
   });
@@ -343,12 +353,12 @@ async function sharePedido() {
 /** Abre el cliente de correo con subject+body (no adjunta) */
 function mailPedido() {
   const c = clienteData;
-  const subject = encodeURIComponent(`Pedido NP ${c.nombre}`);
+  const subject = encodeURIComponent(`Nota de Pedido ${c.nombre}`);
   // reusar el texto plano
   let body = encodeURIComponent(
     `Datos del cliente:\nNombre: ${c.nombre}\nTeléfono: ${c.telefono}\n…\n\n` +
     `Detalle:\n` +
-    pedidoActual.map(it => `${it.codigo} | ${it.cantidad} | ${it.observaciones||''}`).join('\n')
+    pedidoActual.map(it => `${it.codigo} | | ${it.cantidad} | | | ${it.observaciones||''}`).join('\n')
   );
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
 }
