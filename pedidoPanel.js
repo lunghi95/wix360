@@ -229,82 +229,77 @@ function buildPedidoWorkbook() {
   return wb;
 }
 
-// 2) Convierte un Workbook a Base64 para EmailJS
+// 2) Convierte un Workbook a Base64 para enviar al Web App
 function workbookToBase64(wb) {
   return new Promise(resolve => {
     const arrayBuffer = XLSX.write(wb, { bookType:'xlsx', type:'array' });
-    const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+    const blob = new Blob([arrayBuffer], {
+      type: 'application/octet-stream'
+    });
     const reader = new FileReader();
     reader.onload = () => {
-      // reader.result es “data:…;base64,AAAA…”
+      // reader.result = "data:…;base64,AAAA…"
       resolve(reader.result.split(',')[1]);
     };
     reader.readAsDataURL(blob);
   });
 }
 
-// 1) Función que envía el pedido al Web App de Apps Script
+// 3) Envía al Web App con fetch()
 async function sendPedidoToWebApp() {
-  // 1.1) Crea el workbook igual que generateExcel()
   const wb = buildPedidoWorkbook();
-  // 1.2) Transforma el workbook a Base64
   const attachmentBase64 = await workbookToBase64(wb);
-  // 1.3) Preparar asunto y nombre de archivo
-  const hoy = new Date();
-  const dd  = String(hoy.getDate()).padStart(2,'0');
-  const mm  = String(hoy.getMonth()+1).padStart(2,'0');
-  const yyyy= hoy.getFullYear();
-  const safeName = clienteData.nombre.replace(/\s+/g,'_');
-  const subject  = `NP ${clienteData.nombre} ${dd}-${mm}-${yyyy}`;
-  const filename = `NP_${safeName}_${dd}-${mm}-${yyyy}.xlsx`;
 
-  // 1.4) Monta el payload JSON
+  // Armar asunto/nombre de archivo
+  const hoy      = new Date();
+  const dd       = String(hoy.getDate()).padStart(2,'0');
+  const mm       = String(hoy.getMonth()+1).padStart(2,'0');
+  const yyyy     = hoy.getFullYear();
+  const safeName = clienteData.nombre.replace(/\s+/g,'_');
+  const filename = `NP_${safeName}_${dd}-${mm}-${yyyy}.xlsx`;
+  const subject  = `NP ${clienteData.nombre} ${dd}-${mm}-${yyyy}`;
+
   const payload = {
     subject,
     filename,
     attachmentBase64,
-    bodyPlain:  '',    // opcional: texto adicional
-    bodyHtml:   ''     // opcional: HTML adicional
+    bodyPlain:  '',  // si quieres texto extra
+    bodyHtml:   ''   // o HTML en caso
   };
 
-  // 1.5) Llama al Web App
+  // 3.5) Llama al Web App
   const resp = await fetch(WEB_APP_URL, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    mode:    'no‑cors',       // ← this tells the browser not to do the CORS preflight
     body:    JSON.stringify(payload)
   });
   const result = await resp.json();
   if (!result.success) {
-    // si Apps Script devolvió {success:false, error:...}
     throw new Error(result.error || 'Error al enviar el pedido');
   }
 }
 
-// 2) Reemplaza tu guardarPedidoFinal por esta versión
+// 4) La nueva guardarPedidoFinal()
 async function guardarPedidoFinal() {
   if (!pedidoActual.length) {
     alert("No hay artículos en el pedido.");
     return;
   }
-  // confirmación inicial
   if (!confirm(
     "¿Estás seguro que deseas Guardar el pedido?\n\n" +
     "Se enviará automáticamente al mail de Pedidos."
   )) return;
 
-  // indicamos al usuario que estamos enviando
   const btn = document.getElementById("btnGuardarPedido");
   btn.textContent = "Enviando…";
   btn.disabled   = true;
 
   try {
     await sendPedidoToWebApp();
-    // éxito: preguntamos si va al panel de exportar
     if (confirm("✅ Pedido enviado. ¿Querés ir al panel de exportar?")) {
       abrirExportModal();
     } else {
-      // si no, reiniciamos y volvemos al cliente
+      // reset y volvemos a cliente
       pedidoActual = [];
       clienteData  = null;
       cerrarExportModal();
@@ -313,7 +308,6 @@ async function guardarPedidoFinal() {
     }
   } catch (err) {
     console.error(err);
-    // en caso de fallo, preguntamos igual
     if (confirm("❌ Falló el envío. ¿Querés ir al panel de exportar?")) {
       abrirExportModal();
     } else {
@@ -324,7 +318,6 @@ async function guardarPedidoFinal() {
       document.getElementById("btnAgregarArticulo").style.display = "none";
     }
   } finally {
-    // restaurar el botón
     btn.textContent = "Guardar Pedido";
     btn.disabled   = false;
   }
