@@ -1,0 +1,23 @@
+{
+  "name": "wix360",
+  "version": "1.0.0",
+  "description": "",
+  "main": "botonesPedido.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lunghi95/wix360.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lunghi95/wix360/issues"
+  },
+  "homepage": "https://github.com/lunghi95/wix360#readme",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.5"
+  }
+}
