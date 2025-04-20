@@ -283,7 +283,7 @@ async function guardarPedidoFinal() {
   btn.disabled   = true;
 
   try {
-    await sendPedidoToWebApp();
+    await sendPedidoToNetlify();
     if (confirm("✅ Pedido enviado. ¿Querés ir al panel de exportar?")) {
       abrirExportModal();
     } else {
