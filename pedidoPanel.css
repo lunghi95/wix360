@@ -405,6 +405,12 @@
 /* =================================================
    Modal “Exportar Pedido”
    ================================================= */
+   #exportModal.modal {
+    display: none;           /* lo oculta por defecto */
+    align-items: center;     /* centra verticalmente */
+    justify-content: center; /* centra horizontalmente */
+  }
+   
    #exportModal .modal-panel {
     max-width: 400px;
     width: 90%;

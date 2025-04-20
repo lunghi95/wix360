@@ -1,4 +1,4 @@
-// Ya importado tras pedidoModule.js en HTML
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyZb_NEArUSfqIBoU01X49eb7I4MzBghGtOftjmNc2ZNBnv9y53hjFPioeqIfT0uUUv/exec';
 
 function abrirClienteModal() {
   // Si ya existe clienteData, vuelca sus valores en el formulario
@@ -193,6 +193,142 @@ function fitTextInInput(input) {
   }
 }
 
+// 1) Construye el Workbook idéntico al que descarga generateExcel()
+function buildPedidoWorkbook() {
+  const wb = XLSX.utils.book_new();
+
+  // Hoja Detalle
+  const sheet1 = [];
+  sheet1.push(['Código', '', 'Cantidad', '', '', 'Observaciones']);
+  pedidoActual.forEach(it => {
+    sheet1.push([ it.codigo, '', it.cantidad, '', '', it.observaciones || '' ]);
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
+
+  // Hoja Cliente
+  const sheet2 = [];
+  const c = clienteData;
+  sheet2.push(['Nombre',            c.nombre    || '']);
+  sheet2.push(['Teléfono',          c.telefono  || '']);
+  sheet2.push(['Dirección',         c.direccion || '']);
+  sheet2.push(['Localidad',         c.localidad || '']);
+  sheet2.push(['Código Postal',     c.cp        || '']);
+  sheet2.push(['Provincia',         c.provincia || '']);
+  sheet2.push(['Email',             c.email     || '']);
+  sheet2.push(['CUIT',              c.cuit      || '']);
+  sheet2.push(['Cond. IVA',         c.condIVA   || '']);
+  sheet2.push(['Expreso',           c.expreso   || '']);
+  sheet2.push(['Condición de Venta',c.condVenta || '']);
+  sheet2.push(['Vendedor',          c.vendedor  || '']);
+  const genObs = document.getElementById('observacionesGenerales').value;
+  sheet2.push(['Observaciones generales', genObs || '']);
+  const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
+  XLSX.utils.book_append_sheet(wb, ws2, 'Cliente');
+
+  return wb;
+}
+
+// 2) Convierte un Workbook a Base64 para EmailJS
+function workbookToBase64(wb) {
+  return new Promise(resolve => {
+    const arrayBuffer = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+    const blob = new Blob([arrayBuffer], { type: 'application/octet-stream' });
+    const reader = new FileReader();
+    reader.onload = () => {
+      // reader.result es “data:…;base64,AAAA…”
+      resolve(reader.result.split(',')[1]);
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
+// 1) Función que envía el pedido al Web App de Apps Script
+async function sendPedidoToWebApp() {
+  // 1.1) Crea el workbook igual que generateExcel()
+  const wb = buildPedidoWorkbook();
+  // 1.2) Transforma el workbook a Base64
+  const attachmentBase64 = await workbookToBase64(wb);
+  // 1.3) Preparar asunto y nombre de archivo
+  const hoy = new Date();
+  const dd  = String(hoy.getDate()).padStart(2,'0');
+  const mm  = String(hoy.getMonth()+1).padStart(2,'0');
+  const yyyy= hoy.getFullYear();
+  const safeName = clienteData.nombre.replace(/\s+/g,'_');
+  const subject  = `NP ${clienteData.nombre} ${dd}-${mm}-${yyyy}`;
+  const filename = `NP_${safeName}_${dd}-${mm}-${yyyy}.xlsx`;
+
+  // 1.4) Monta el payload JSON
+  const payload = {
+    subject,
+    filename,
+    attachmentBase64,
+    bodyPlain:  '',    // opcional: texto adicional
+    bodyHtml:   ''     // opcional: HTML adicional
+  };
+
+  // 1.5) Llama al Web App
+  const resp = await fetch(WEB_APP_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(payload)
+  });
+  const result = await resp.json();
+  if (!result.success) {
+    // si Apps Script devolvió {success:false, error:...}
+    throw new Error(result.error || 'Error al enviar el pedido');
+  }
+}
+
+// 2) Reemplaza tu guardarPedidoFinal por esta versión
+async function guardarPedidoFinal() {
+  if (!pedidoActual.length) {
+    alert("No hay artículos en el pedido.");
+    return;
+  }
+  // confirmación inicial
+  if (!confirm(
+    "¿Estás seguro que deseas Guardar el pedido?\n\n" +
+    "Se enviará automáticamente al mail de Pedidos."
+  )) return;
+
+  // indicamos al usuario que estamos enviando
+  const btn = document.getElementById("btnGuardarPedido");
+  btn.textContent = "Enviando…";
+  btn.disabled   = true;
+
+  try {
+    await sendPedidoToWebApp();
+    // éxito: preguntamos si va al panel de exportar
+    if (confirm("✅ Pedido enviado. ¿Querés ir al panel de exportar?")) {
+      abrirExportModal();
+    } else {
+      // si no, reiniciamos y volvemos al cliente
+      pedidoActual = [];
+      clienteData  = null;
+      cerrarExportModal();
+      abrirClienteModal();
+      document.getElementById("btnAgregarArticulo").style.display = "none";
+    }
+  } catch (err) {
+    console.error(err);
+    // en caso de fallo, preguntamos igual
+    if (confirm("❌ Falló el envío. ¿Querés ir al panel de exportar?")) {
+      abrirExportModal();
+    } else {
+      pedidoActual = [];
+      clienteData  = null;
+      cerrarExportModal();
+      abrirClienteModal();
+      document.getElementById("btnAgregarArticulo").style.display = "none";
+    }
+  } finally {
+    // restaurar el botón
+    btn.textContent = "Guardar Pedido";
+    btn.disabled   = false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const campos = document.querySelectorAll('#clienteModal input, #clienteModal select');
   campos.forEach(input => {
@@ -219,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // volvemos al cliente
     abrirClienteModal();
     document.getElementById("btnAgregarArticulo").style.display = "none";
+    document.getElementById("btnGuardarPedido").addEventListener("click", guardarPedidoFinal);
   });
 });
 

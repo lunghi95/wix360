@@ -19,6 +19,7 @@
   <script src="pedidoModule.js"></script>
   <script src="pedidoPanel.js"></script>
   <script src="botonesPedido.js"></script>
+
   
 
 
@@ -47,8 +48,8 @@
   background: #0056b3;
 }
 
-/* Estilo para el modal */
-.modal {
+/* Estilo sólo para el modal de “+ Info” */
+#infoModal.modal {
   display: none; /* Oculto por defecto */
   position: fixed;
   top: 0;
@@ -537,9 +538,9 @@
              justify-content: flex-end;
              gap: 10px;
            ">
-          <div class="modal-footer" style="…">
+          <div class="modal-footer">
             <button class="cancelar" onclick="cerrarDetalleModal()">Cancelar</button>
-            <button class="guardar" onclick="guardarPedidoFinal()">Guardar Pedido</button>
+            <button id="btnGuardarPedido" class="guardar" onclick="guardarPedidoFinal()">Guardar Pedido</button>
           </div>
         </div>
       </div>
@@ -547,7 +548,7 @@
   </div>
 </div>
 <!-- Modal Exportar Pedido -->
-<div id="exportModal" class="modal" style="display:none; align-items:center; justify-content:center;">
+<div id="exportModal" class="modal">
   <div class="modal-panel">
     <h2>Exportar Pedido</h2>
     <div class="export-buttons">
