@@ -1,34 +1,32 @@
-function inicializarBotonesPedido() {
-    const container = document.createElement("div");
-    container.id = "pedido-buttons";
-    // Reducimos z-index para que los modales queden por encima
-    container.style.cssText = 'position:absolute;top:20px;left:20px;z-index:20;display:flex;flex-direction:column;gap:10px';
-  
-    const btnPedido = document.createElement("button");
-    btnPedido.textContent = "📝 Pedido";
-    btnPedido.style.cssText = 'padding:8px 14px;font-size:14px;border-radius:5px;border:none;cursor:pointer;background:#007bff;color:#fff';
-    btnPedido.onclick = () => {
-      if (!clienteData) {
-        abrirClienteModal();
-      } else {
-        abrirDetalleModal();
-      }
-    };
-  
-    const btnAgregar = document.createElement("button");
-    btnAgregar.id = "btnAgregarArticulo";
-    btnAgregar.textContent = "➕ Agregar Artículo";
-    btnAgregar.style.cssText = 'padding:8px 14px;font-size:14px;border-radius:5px;border:none;cursor:pointer;background:#28a745;color:#fff;display:none';
-    btnAgregar.onclick = () => {
-      const idx = getCurrentProductIndex();
-      if (idx) agregarLineaDesdeVisor(idx);
-      else alert("❌ No hay producto activo.");
-    };
-  
-    container.append(btnPedido, btnAgregar);
-    const target = document.getElementById("spinnerContainer");
-    if (target) target.appendChild(container);
+// netlify/functions/send-pedido.js
+const sgMail = require('@sendgrid/mail')
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+
+exports.handler = async function(event) {
+  try {
+    const data = JSON.parse(event.body)
+    const msg = {
+      to:   process.env.PEDIDOS_EMAIL,
+      from: process.env.FROM_EMAIL,
+      subject: data.subject,
+      text:    data.bodyPlain  || '',
+      html:    data.bodyHtml   || '',
+      attachments: [{
+        content:     data.attachmentBase64,
+        filename:    data.filename,
+        type:        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        disposition: 'attachment'
+      }]
+    }
+    await sgMail.send(msg)
+    return { statusCode: 200, body: JSON.stringify({ success: true }) }
+  } catch (err) {
+    console.error("send-pedido error:", err)
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, error: err.toString() })
+    }
   }
-  
-  window.addEventListener("load", inicializarBotonesPedido);
+}
+
   

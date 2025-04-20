@@ -1,5 +1,3 @@
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz2c2kkthOyuwI_4LOAJ-I-ZkfOaOzXsMUJ98uQZTvDiXfEbjTlAg30SnIqrx6wHHNe/exec';
-
 function abrirClienteModal() {
   // Si ya existe clienteData, vuelca sus valores en el formulario
   if (clienteData) {
@@ -245,12 +243,11 @@ function workbookToBase64(wb) {
   });
 }
 
-// 3) Envía al Web App con fetch()
-async function sendPedidoToWebApp() {
+// 3) Envía a Netlify Functions
+async function sendPedidoToNetlify() {
   const wb = buildPedidoWorkbook();
   const attachmentBase64 = await workbookToBase64(wb);
-
-  // Armar asunto/nombre de archivo
+  // asunto/nombre de archivo
   const hoy      = new Date();
   const dd       = String(hoy.getDate()).padStart(2,'0');
   const mm       = String(hoy.getMonth()+1).padStart(2,'0');
@@ -259,24 +256,15 @@ async function sendPedidoToWebApp() {
   const filename = `NP_${safeName}_${dd}-${mm}-${yyyy}.xlsx`;
   const subject  = `NP ${clienteData.nombre} ${dd}-${mm}-${yyyy}`;
 
-  const payload = {
-    subject,
-    filename,
-    attachmentBase64,
-    bodyPlain:  '',  // si quieres texto extra
-    bodyHtml:   ''   // o HTML en caso
-  };
+  const payload = { subject, filename, attachmentBase64, bodyPlain:'', bodyHtml:'' };
 
-  // 3.5) Llama al Web App
-  const resp = await fetch(WEB_APP_URL, {
-    method:  'POST',
+  const resp = await fetch('/.netlify/functions/send-pedido', {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(payload)
+    body: JSON.stringify(payload)
   });
   const result = await resp.json();
-  if (!result.success) {
-    throw new Error(result.error || 'Error al enviar el pedido');
-  }
+  if (!result.success) throw new Error(result.error || 'Error al enviar');
 }
 
 // 4) La nueva guardarPedidoFinal()

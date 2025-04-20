@@ -30,4 +30,3 @@ function inicializarBotonesPedido() {
 }
 
 window.addEventListener("load", inicializarBotonesPedido);
-
