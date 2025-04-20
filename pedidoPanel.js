@@ -1,4 +1,4 @@
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyZb_NEArUSfqIBoU01X49eb7I4MzBghGtOftjmNc2ZNBnv9y53hjFPioeqIfT0uUUv/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz2c2kkthOyuwI_4LOAJ-I-ZkfOaOzXsMUJ98uQZTvDiXfEbjTlAg30SnIqrx6wHHNe/exec';
 
 function abrirClienteModal() {
   // Si ya existe clienteData, vuelca sus valores en el formulario
@@ -271,6 +271,7 @@ async function sendPedidoToWebApp() {
   const resp = await fetch(WEB_APP_URL, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
+    mode:    'no‑cors',       // ← this tells the browser not to do the CORS preflight
     body:    JSON.stringify(payload)
   });
   const result = await resp.json();
