@@ -445,6 +445,25 @@ function copyTextPlain() {
   });
 }
 
+function generarTextoCliente () {
+  const c = clienteData;
+  return [
+    `Cliente: ${c.nombre}`,
+    `Teléfono: ${c.telefono}`,
+    `Dirección: ${c.direccion}`,
+    `Localidad: ${c.localidad}`,
+    `CP: ${c.cp}`,
+    `Provincia: ${c.provincia}`,
+    `Email: ${c.email}`,
+    `CUIT: ${c.cuit}`,
+    `Cond. IVA: ${c.condIVA}`,
+    `Expreso: ${c.expreso}`,
+    `Cond. Venta: ${c.condVenta}`,
+    `Vendedor: ${c.vendedor}`,
+    `Obs. generales: ${document.getElementById('observacionesGenerales').value}`
+  ].join('\n');
+}
+
 /** Usa la Web Share API para compartir CSV (si está disponible) */
 async function sharePedidoCSV () {
 
@@ -466,24 +485,32 @@ async function sharePedidoCSV () {
   const nombre = `NP_${clienteData.nombre.replace(/\s+/g,'_')}.csv`;
   const file   = new File([blob], nombre, { type:'text/csv' });
 
-  /* 3) ───── Chequeo de compatibilidad ───── */
-  if (!navigator.canShare || !navigator.canShare({ files:[file] })) {
-    // Fallback → descargar CSV
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = nombre;
-    a.click();
-    alert('Tu dispositivo no pudo compartir. Se descargó el CSV para adjuntarlo manualmente.');
-    return;
+  /* C) Texto plano del cliente */
+  const cuerpo = generarTextoCliente();
+
+  /* D) ¿Se puede compartir archivo+texto? */
+  const puede = navigator.canShare && navigator.canShare({ files:[file] });
+  if (puede) {
+    try {
+      await navigator.share({
+        title: `Pedido – ${clienteData.nombre}`,
+        text : cuerpo,          // ← bloque de datos del cliente
+        files: [file]           // ← CSV adjunto
+      });
+      console.info('✔️ Compartido CSV + texto');
+      return;
+    } catch (e) {
+      console.warn('Compartir cancelado:', e);
+    }
   }
 
-  /* 4) ───── Compartir ───── */
-  try {
-    await navigator.share({ files:[file] });
-    console.info('✔️ Pedido compartido como CSV');
-  } catch (e) {
-    console.warn('Compartir cancelado / falló:', e);
-  }
+  /* E) Fallback: descargar y copiar texto al portapapeles */
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  a.click();
+  navigator.clipboard.writeText(cuerpo).catch(()=>{});
+  alert('No se pudo compartir directamente.\nSe descargó el CSV y los datos del cliente quedaron copiados en el portapapeles.');
 }
 
 /** Abre el cliente de correo con subject+body (no adjunta) */
