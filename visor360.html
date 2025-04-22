@@ -369,7 +369,7 @@
     <p>También puede hacerle Zoom para ver mejor.</p>
     <button onclick="closeFloatingMessage()">Ok</button>
   </div>
-  
+
   <div style="position:fixed; bottom:1rem; right:1rem; z-index:9999;">
     <button id="test-share" style="padding:0.5rem 1rem;">Probar Web Share API</button>
   </div>
@@ -562,11 +562,14 @@
   <div class="modal-panel">
     <h2>Exportar Pedido</h2>
     <div class="export-buttons">
-      <button id="btnDownloadExcel" class="export-btn">📥 Descargar Excel</button>
-      <button id="btnCopyText"    class="export-btn">📋 Copiar texto plano</button>
-      <button id="btnWhatsapp"       class="export-btn">📲 Compartir Whatsapp</button>
-      <button id="btnMailTo"      class="export-btn">📧 Enviar por mail</button>
-      <button id="btnNewPedido"   class="export-btn">🔄 Nuevo Pedido</button>
+      <button id="btnDownloadExcel" class="export-btn btn-excel">📥 Descargar Excel</button>
+      <button id="btnDownloadPDF"   class="export-btn btn-pdf">📥 Descargar PDF</button>
+      <button id="btnCopyText"    class="export-btn btn-copy">📋 Copiar texto plano</button>
+      <button id="btnWhatsapp"       class="export-btn btn-wsp">📲 Compartir Whatsapp</button>
+      <button id="btnMailTo"      class="export-btn btn-mail">📧 Enviar por mail</button>
+      <button id="btnShareExcel" class="export-btn btn-excel">📤 Compartir Excel</button>
+      <button id="btnSharePDF" class="export-btn btn-pdf">📤 Compartir PDF</button>
+      <button id="btnNewPedido"   class="export-btn btn-new">🔄 Nuevo Pedido</button>
     </div>
   </div>
 </div>

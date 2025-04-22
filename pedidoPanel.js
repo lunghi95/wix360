@@ -312,23 +312,41 @@ async function guardarPedidoFinal() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ——— 1) Campos de cliente: fitTextInInput ———
   const campos = document.querySelectorAll('#clienteModal input, #clienteModal select');
   campos.forEach(input => {
     input.addEventListener('focus', () => {
       // al enfocar quitamos cualquier override inline
-      input.style.fontSize = '';
+      input.style.fontSize = ''; // reset inline font-size
     });
     input.addEventListener('input', () => fitTextInInput(input));
   });
+
+  // ——— 2) Detectar soporte de Web Share API para archivos ———
+  const testFile = new File(
+    [ new ArrayBuffer(1) ],
+    "pedido.xlsx",
+    { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+  );
+  const shareSupported = navigator.canShare && navigator.canShare({ files: [ testFile ] });
+
+// ACA VA EL IF PARA VER SI SE MUESTRA EL BOTON DE COMPARTIR
+  
   // ============== Botones de Exportar ==============
   document.getElementById("btnDownloadExcel").addEventListener("click", generateExcel);
   document.getElementById("btnCopyText"   ).addEventListener("click", copyTextPlain);
   document.getElementById("btnWhatsapp"   ).addEventListener("click", () => {
+    // generamos el texto plano y lo abrimos en WhatsApp Web
     const texto = encodeURIComponent( generarTextoPlanoPedido() );
     const url   = `https://api.whatsapp.com/send?text=${texto}`;
     window.open(url, '_blank');
   });
   document.getElementById("btnMailTo"     ).addEventListener("click", mailPedido);
+
+  // ============== Botones de Compartir ==============
+  document.getElementById("btnShareExcel").addEventListener("click", sharePedidoCSV);
+
+  // Nuevo pedido (siempre disponible)
   document.getElementById("btnNewPedido"  ).addEventListener("click", () => {
     // reiniciar todo
     pedidoActual = [];
@@ -427,45 +445,44 @@ function copyTextPlain() {
   });
 }
 
-/** Usa la Web Share API para compartir XLSX (si está disponible) */
-async function sharePedido() {
-  if (!navigator.canShare || !navigator.canShare({ files: [] })) {
-    return alert('Compartir no está soportado en este navegador.');
+/** Usa la Web Share API para compartir CSV (si está disponible) */
+async function sharePedidoCSV () {
+
+  /* 1) ───── Generar contenido CSV del DETALLE ───── */
+  const filas = [];
+  // Encabezado
+  filas.push(['Codigo','', 'Cantidad','','', 'Observaciones']);
+
+  // Líneas del pedido
+  pedidoActual.forEach(it =>
+    filas.push([it.codigo, , it.cantidad, , , (it.observaciones||'').replace(/"/g,'""') ])
+  );
+
+  // Convertir a texto CSV  (punto‑y‑coma porque usás “;” en Sheets)
+  const csvText = filas.map(r => r.join(',')).join('\r\n');
+
+  /* 2) ───── Crear File ───── */
+  const blob   = new Blob([csvText], { type:'text/csv' });
+  const nombre = `NP_${clienteData.nombre.replace(/\s+/g,'_')}.csv`;
+  const file   = new File([blob], nombre, { type:'text/csv' });
+
+  /* 3) ───── Chequeo de compatibilidad ───── */
+  if (!navigator.canShare || !navigator.canShare({ files:[file] })) {
+    // Fallback → descargar CSV
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    a.click();
+    alert('Tu dispositivo no pudo compartir. Se descargó el CSV para adjuntarlo manualmente.');
+    return;
   }
-  // recrear workbook como en generateExcel(), pero en ArrayBuffer
-  const wb = XLSX.utils.book_new();
-  // … copiar aquí la construcción de ws1 y ws2 … (idem generateExcel)
-  // para no repetir: podemos llamar a generateExcel y capturar el buffer, 
-  // pero por claridad reescribimos:
-  const sheet1 = [['Código','','Cantidad','','','Observaciones']];
-  pedidoActual.forEach(it => sheet1.push([it.codigo,'',it.cantidad,'','',it.observaciones||'']));
-  const ws1 = XLSX.utils.aoa_to_sheet(sheet1);
-  XLSX.utils.book_append_sheet(wb, ws1, 'Detalle');
 
-  const sheet2 = [];
-  const c = clienteData;
-  sheet2.push(['Nombre',c.nombre||'']);
-  sheet2.push(['Teléfono',c.telefono||'']);
-  // … resto campos …
-  const genObs = document.getElementById('observacionesGenerales').value;
-  sheet2.push(['Observaciones generales', genObs||'']);
-  const ws2 = XLSX.utils.aoa_to_sheet(sheet2);
-  XLSX.utils.book_append_sheet(wb, ws2, 'Cliente');
-
-  // buffer
-  const wbout = XLSX.write(wb, { bookType:'xlsx', type:'array' });
-  const blob  = new Blob([wbout], { type: 'application/octet-stream' });
-  const fileName = `NP_${c.nombre.replace(/\s+/g,'_')}.xlsx`;
-  const file = new File([blob], fileName, { type: blob.type });
-
+  /* 4) ───── Compartir ───── */
   try {
-    await navigator.share({
-      title: `Pedido ${c.nombre}`,
-      files: [file],
-      text: 'Aquí tenés el pedido.'
-    });
-  } catch (err) {
-    console.error(err);
+    await navigator.share({ files:[file] });
+    console.info('✔️ Pedido compartido como CSV');
+  } catch (e) {
+    console.warn('Compartir cancelado / falló:', e);
   }
 }
 

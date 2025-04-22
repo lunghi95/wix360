@@ -423,15 +423,28 @@
     margin-top: 10px;
   }
   .export-btn {
-    padding: 10px;
+    color: #fff;
     border: none;
-    border-radius: 6px;
+    border-radius: 10px;
+    padding: 12px 16px;
     font-size: 1rem;
     cursor: pointer;
+    margin: 4px 0;
+    width: 100%;
+    display: block;
+    text-align: center;
     background-color: #007bff;
-    color: #fff;
-    transition: background-color 0.2s;
+    transition: background-color 0.5s;
   }
+
+    /* Colores por tipo */
+.btn-excel { background-color: #217346; }   /* verde Excel */
+.btn-pdf   { background-color: #D32F2F; }   /* rojo PDF/Acrobat */
+.btn-copy  { background-color: #555555; }   /* gris copy/texto */
+.btn-wsp   { background-color: #25D366; }   /* verde WhatsApp */
+.btn-mail  { background-color: #0072C6; }   /* azul Outlook/mail */
+.btn-new   { background-color: #007BFF; }   /* azul “nuevo pedido” */
+
   .export-btn:hover {
     background-color: #0056b3;
   }
