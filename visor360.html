@@ -371,7 +371,7 @@
   </div>
 
   <div style="position:fixed; bottom:1rem; right:1rem; z-index:9999;">
-    <button id="test-share" style="padding:0.5rem 1rem;">Probar Web Share API</button>
+    <button id="test-Excel" style="padding:0.5rem 1rem;">Probar Web Share API</button>
   </div>
 
   <div id="layout">
@@ -840,6 +840,11 @@ function updateProductTitle(prodNum){
     });
 
 });
+</script>
+<script>
+  // Al cargarse la página, engancha el click al nuevo flujo
+  document.getElementById('test-Excel')
+          .addEventListener('click', sharePedidoCSV);
 </script>
 
 <button id="test-share">Probar Web Share API</button>
