@@ -345,6 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============== Botones de Compartir ==============
   document.getElementById("btnShareExcel").addEventListener("click", sharePedidoCSV);
+  document.getElementById('btnDownloadPDF').addEventListener('click', generatePedidoPDF);
+  document.getElementById('btnSharePDF').addEventListener('click', sharePedidoPDF);
+
 
   // Nuevo pedido (siempre disponible)
   document.getElementById("btnNewPedido"  ).addEventListener("click", () => {
@@ -464,54 +467,73 @@ function generarTextoCliente () {
   ].join('\n');
 }
 
-/** Usa la Web Share API para compartir CSV (si está disponible) */
+/*  Helper para texto csv seguro ------------- */
+const csvEsc = str => (str || '')
+  .replace(/"/g, '""');          // duplica comillas
+
+/*  Compartir CSV con Detalle + Datos cliente */
 async function sharePedidoCSV () {
 
-  /* 1) ───── Generar contenido CSV del DETALLE ───── */
+  /* 1) ---------------- DETALLE ---------------- */
   const filas = [];
-  // Encabezado
-  filas.push(['Codigo','', 'Cantidad','','', 'Observaciones']);
+  filas.push(['Codigo', '', 'Cantidad', '', '', 'Observaciones']);  // encabezado
 
-  // Líneas del pedido
-  pedidoActual.forEach(it =>
-    filas.push([it.codigo, , it.cantidad, , , (it.observaciones||'').replace(/"/g,'""') ])
-  );
+  pedidoActual.forEach(it => filas.push([
+    it.codigo,
+    '',                               // columna B vacía
+    it.cantidad,
+    '', '',                           // D y E vacías
+    csvEsc(it.observaciones)
+  ]));
 
-  // Convertir a texto CSV  (punto‑y‑coma porque usás “;” en Sheets)
+  /* 2) ------ Separador + bloque Cliente ------ */
+  filas.push([]);                     // línea en blanco
+  filas.push(['DATOS DEL CLIENTE']);  // marcador visual
+
+  const c = clienteData;
+  const obsGen = document.getElementById('observacionesGenerales').value;
+
+  [
+    ['Nombre:',            c.nombre],
+    ['Telefono:',          c.telefono],
+    ['Direccion:',         c.direccion],
+    ['Localidad:',         c.localidad],
+    ['Codigo Postal:',     c.cp],
+    ['Provincia:',         c.provincia],
+    ['Email:',             c.email],
+    ['CUIT:',              c.cuit],
+    ['Cond. IVA:',         c.condIVA],
+    ['Expreso:',           c.expreso],
+    ['Condicion de Venta:',c.condVenta],
+    ['Vendedor:',          c.vendedor],
+    ['Observaciones generales:', obsGen]
+  ].forEach(par => filas.push([par[0], csvEsc(par[1])]));
+
+  /* 3) ---------- Convertir a CSV texto ---------- */
   const csvText = filas.map(r => r.join(',')).join('\r\n');
+  const blob    = new Blob([csvText], { type: 'text/csv' });
+  const nombre  = `NP_${c.nombre.replace(/\s+/g,'_')}.csv`;
+  const file    = new File([blob], nombre, { type:'text/csv' });
 
-  /* 2) ───── Crear File ───── */
-  const blob   = new Blob([csvText], { type:'text/csv' });
-  const nombre = `NP_${clienteData.nombre.replace(/\s+/g,'_')}.csv`;
-  const file   = new File([blob], nombre, { type:'text/csv' });
-
-  /* C) Texto plano del cliente */
-  const cuerpo = generarTextoCliente();
-
-  /* D) ¿Se puede compartir archivo+texto? */
-  const puede = navigator.canShare && navigator.canShare({ files:[file] });
-  if (puede) {
+  /* 4) ---------- Compartir o descargar ---------- */
+  if (navigator.canShare && navigator.canShare({ files:[file] })) {
     try {
-      await navigator.share({
-        title: `Pedido – ${clienteData.nombre}`,
-        text : cuerpo,          // ← bloque de datos del cliente
-        files: [file]           // ← CSV adjunto
-      });
-      console.info('✔️ Compartido CSV + texto');
+      await navigator.share({ files:[file] });
+      console.info('✔️ CSV compartido');
       return;
-    } catch (e) {
+    } catch(e) {
       console.warn('Compartir cancelado:', e);
     }
   }
 
-  /* E) Fallback: descargar y copiar texto al portapapeles */
+  // fallback
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = nombre;
   a.click();
-  navigator.clipboard.writeText(cuerpo).catch(()=>{});
-  alert('No se pudo compartir directamente.\nSe descargó el CSV y los datos del cliente quedaron copiados en el portapapeles.');
+  alert('No se pudo compartir: se descargó el CSV para enviarlo manualmente.');
 }
+
 
 /** Abre el cliente de correo con subject+body (no adjunta) */
 function mailPedido() {
@@ -526,5 +548,118 @@ function mailPedido() {
   window.location.href = `mailto:?subject=${subject}&body=${body}`;
 }
 
+function pedidoTienePrecios () {
+  return pedidoActual.some(it => it.precio && it.precio > 0);
+}
+
+async function generatePedidoPDF () {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit:'mm', format:'a4' });
+
+  /* --- 1) Cabecera del cliente ------------------- */
+  const c = clienteData;
+  const fecha = new Date().toLocaleDateString('es-AR');
+  pdf.setFontSize(10);
+  const pageW = pdf.internal.pageSize.getWidth();
+  pdf.text(`Fecha: ${fecha}`, pageW - 10, 10, { align:'right' });
+
+  // ── NUEVA cuadrícula de 6 filas / 3 columnas ──
+  const y0 = 20, lh = 6; // y0 subir o bajar todo // lh altura de línea
+  const L = 10, V1 = 30, L2 = 100, V2 = 120; // columnas anchos
+
+  pdf.text('Cliente:',    L,  y0);          pdf.text(String(c.nombre),      V1, y0);
+  pdf.text('CUIT:',       L2, y0);          pdf.text(String(c.cuit),        V2+5, y0);
+  pdf.text('Dirección:',  L,  y0+lh);       pdf.text(String(c.direccion),   V1, y0+lh);
+  pdf.text('Cond. IVA:',  L2, y0+lh);       pdf.text(String(c.condIVA),     V2+5, y0+lh);
+  pdf.text('Localidad:',  L,  y0+lh*2);     pdf.text(String(c.localidad),   V1, y0+lh*2);
+  pdf.text('Expreso:',    L2, y0+lh*2);     pdf.text(String(c.expreso),     V2+5, y0+lh*2);
+  pdf.text('Provincia:',  L,  y0+lh*3);     pdf.text(String(c.provincia),   V1, y0+lh*3);
+  pdf.text('CP:',         L2-35, y0+lh*3);  pdf.text(String(c.cp),          V2-44, y0+lh*3);
+  pdf.text('Cond. Venta:',L2, y0+lh*3);     pdf.text(String(c.condVenta),   V2+5, y0+lh*3);
+  pdf.text('Teléfono:',   L,  y0+lh*4);     pdf.text(String(c.telefono),    V1, y0+lh*4);
+  pdf.text('Email:',      L2-35, y0+lh*4);  pdf.text(String(c.email),       V2-44, y0+lh*4);
+  pdf.text('Vendedor:',   L2+55, y0+lh*4);  pdf.text(String(c.vendedor),    V2+55, y0+lh*4);
+
+  const obs = document.getElementById('observacionesGenerales').value || '';
+  pdf.text('Obs. generales:', L, y0+lh*5);
+  pdf.text(obs, V1+10, y0+lh*5, { maxWidth: 160 });
+
+  /* Línea divisoria */
+  const startY = y0 + lh*6 + 4;
+  pdf.line(10, startY, 200, startY);
+
+  /* --- 2) Tabla de detalle ----------------------- */
+  const conPrecio = pedidoTienePrecios();
+
+  const head = conPrecio
+    ? ['Código','Artículo','Color','Cant.','Observ.','Precio U.','Total $']
+    : ['Código','Artículo','Color','Cant.','Observ.'];
+
+  const body = pedidoActual.map(it => {
+    const fila = [
+      it.codigo,
+      it.articulo || '',
+      it.color    || '',
+      it.cantidad,
+      it.observaciones || ''
+    ];
+    if (conPrecio) {
+    fila.push(
+      it.precio?.toFixed(2) || '',
+      (it.total||'').toString()
+      );
+    }
+    return fila;
+  });
+
+  pdf.autoTable({
+    head: [head],
+    body,
+    startY: startY + 6,
+    styles: { fontSize:9, overflow:'linebreak' },
+    headStyles: { fillColor:[180,180,180] }
+  });
+
+  /* --- 3) Totales en la última página ------------- */
+  const totalPares   = pedidoActual.reduce((s,it)=>s+it.cantidad, 0);
+  const totalImporte = pedidoActual.reduce((s,it)=>s+(it.total||0),0);
+
+  const finalY = pdf.lastAutoTable.finalY + 6;
+  pdf.setFontSize(11);
+  pdf.text(`Total pares: ${totalPares}`, 20, finalY);
+  if (conPrecio) {
+    pdf.text(`Total $: ${totalImporte.toFixed(2)}`, 120, finalY);
+  }
+
+  /* --- 4) Descargar ------------------------------ */
+  const nombre = `NP_${c.nombre.replace(/\s+/g,'_')}.pdf`;
+  pdf.save(nombre);
+}
+
+async function sharePedidoPDF () {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit:'mm', format:'a4' });
+
+  /* Reutilizamos exactamente los mismos bloques */
+  generatePedidoPDF_content(pdf);  // ← ponemos cabecera, tabla y totales
+  const bytes = pdf.output('arraybuffer');
+  const blob  = new Blob([bytes], { type:'application/pdf' });
+
+  const nombre = `NP_${clienteData.nombre.replace(/\s+/g,'_')}.pdf`;
+  const file   = new File([blob], nombre, { type:'application/pdf' });
+
+  if (navigator.canShare && navigator.canShare({ files:[file] })) {
+    await navigator.share({ files:[file] });
+  } else {
+    pdf.save(nombre);        // fallback
+    alert('El dispositivo no permite compartir PDF;\nse descargó para enviarlo manualmente.');
+  }
+}
+
+/* Helper: genera el contenido en un objeto jsPDF ya existente */
+function generatePedidoPDF_content(pdf){
+  /* Copiá aquí todo lo que está dentro de generatePedidoPDF(),
+     pero SIN la línea pdf.save() al final. */
+}
 
 
