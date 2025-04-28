@@ -552,10 +552,66 @@ function pedidoTienePrecios () {
   return pedidoActual.some(it => it.precio && it.precio > 0);
 }
 
-async function generatePedidoPDF () {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit:'mm', format:'a4' });
+function drawPedidoEnPDF(pdf) {
+  /* --------------- 1) Fecha + cabecera ---------------- */
+  const c = clienteData;
+  const fecha = new Date().toLocaleDateString('es-AR');
+  pdf.setFontSize(10);
+  const pageW = pdf.internal.pageSize.getWidth();
+  pdf.text(`Fecha: ${fecha}`, pageW - 10, 10, { align:'right' });
 
+  // ── TODO tu cuadrícula de 6 filas / 3 columnas ──
+  const y0 = 20, lh = 7;
+  const L = 12, V1 = 60, L2 = 115, V2 = 155;
+  // … (todas las pdf.text de Cliente, CUIT, etc.) …
+
+  // Línea divisoria
+  const startY = y0 + lh*6 + 4;
+  pdf.line(10, startY, 200, startY);
+
+  /* --------------- 2) Tabla autoTable ----------------- */
+  const conPrecio = pedidoTienePrecios();
+  const head = conPrecio
+    ? ['Código','Artículo','Color','Cant.','Observ.','Precio U.','Total $']
+    : ['Código','Artículo','Color','Cant.','Observ.'];
+
+  const body = pedidoActual.map(it => {
+    const fila = [
+      it.codigo,
+      it.articulo || '',
+      it.color    || '',
+      it.cantidad,
+      it.observaciones || ''
+    ];
+    if (conPrecio) fila.push(
+      it.precio?.toFixed(2) || '',
+      (it.total||'').toString()
+    );
+    return fila;
+  });
+
+  pdf.autoTable({
+    head:[head],
+    body,
+    startY: startY + 6,
+    styles:{ fontSize:9 },
+    headStyles:{ fillColor:[180,180,180], textColor:255 }
+  });
+
+  /* --------------- 3) Totales al pie ------------------ */
+  const totalPares = pedidoActual.reduce((s,it)=>s+it.cantidad,0);
+  const totalImp   = pedidoActual.reduce((s,it)=>s+(it.total||0),0);
+
+  const finalY = pdf.lastAutoTable.finalY + 6;
+  const marginLeft = pdf.autoTable.previous.finalX; // normalmente 10
+  pdf.setFontSize(11);
+  pdf.text(`Total pares: ${totalPares}`, marginLeft, finalY);
+  if (conPrecio) {
+    pdf.text(`Total $: ${totalImp.toFixed(2)}`, 120, finalY);
+  }
+}
+
+function drawPedidoEnPDF(pdf) {
   /* --- 1) Cabecera del cliente ------------------- */
   const c = clienteData;
   const fecha = new Date().toLocaleDateString('es-AR');
@@ -633,25 +689,32 @@ async function generatePedidoPDF () {
 
   /* --- 4) Descargar ------------------------------ */
   const nombre = `NP_${c.nombre.replace(/\s+/g,'_')}.pdf`;
-  pdf.save(nombre);
+}
+
+function generatePedidoPDF () {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit:'mm', format:'a4' });
+
+  drawPedidoEnPDF(pdf);            // pinta todo
+
+  const nombre = `NP_${clienteData.nombre.replace(/\s+/g,'_')}.pdf`;
+  pdf.save(nombre);                // descarga
 }
 
 async function sharePedidoPDF () {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ unit:'mm', format:'a4' });
 
-  /* Reutilizamos exactamente los mismos bloques */
-  generatePedidoPDF_content(pdf);  // ← ponemos cabecera, tabla y totales
-  const bytes = pdf.output('arraybuffer');
-  const blob  = new Blob([bytes], { type:'application/pdf' });
+  drawPedidoEnPDF(pdf);            // pinta lo mismo
 
+  const blob   = new Blob([pdf.output('arraybuffer')], { type:'application/pdf' });
   const nombre = `NP_${clienteData.nombre.replace(/\s+/g,'_')}.pdf`;
   const file   = new File([blob], nombre, { type:'application/pdf' });
 
   if (navigator.canShare && navigator.canShare({ files:[file] })) {
     await navigator.share({ files:[file] });
   } else {
-    pdf.save(nombre);        // fallback
+    pdf.save(nombre);              // fallback
     alert('El dispositivo no permite compartir PDF;\nse descargó para enviarlo manualmente.');
   }
 }
