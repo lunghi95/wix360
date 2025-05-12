@@ -16,6 +16,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <!-- SpriteSpin 4.0.4 -->
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
+  <script>
+  // Aquí defines UNA VEZ la línea a usar en toda la página
+  window.linea = 'FLEX';   // o 'BIRK_OJOTA', según corresponda
+</script>
   <!-- Diccionario con Artículo y Color -->
   <script src="productInfo.js"></script>
   <script src="catalogo.js"></script>
@@ -376,10 +380,6 @@
     <button onclick="closeFloatingMessage()">Ok</button>
   </div>
 
-  <div style="position:fixed; bottom:1rem; right:1rem; z-index:9999;">
-    <button id="test-Excel" style="padding:0.5rem 1rem;">Probar Web Share API</button>
-  </div>
-
   <div id="layout">
   <!-- Carrusel a la izquierda (landscape) o abajo (portrait) -->
   <div id="carouselContainer"></div>
@@ -581,15 +581,19 @@
 </div>
 
 <script>
+  // Ahora catalogos y getProducto están en window
+  window.catalogo        = window.catalogos[linea];
+  window.codigosInternos = window.catalogo.codigos;
+</script>
+
+<script>
 $(function(){
   const baseURL = "/";
-  const folder = "Fotos/WEBP/FLEX/";
-  const extension = ".webp";
-  const frameCount = 24;
+  const { folder, extension, frameCount, productos } = window.catalogo;
   let currentProduct = 1;
 
   initViewer(currentProduct);
-  buildCarousel(32);
+  buildCarousel(Object.keys(productos).length);
 
   // ------------------- INIT VIEWER ------------------- //
   function initViewer(productNum){
@@ -663,7 +667,7 @@ $(function(){
 	  
 	// ===== NUEVO: creamos wrapper y label =====
     const $wrapper = $('<div class="miniWrapper"></div>').append($img);
-    const info = productInfo[pStr];
+    const info = getProducto(linea, pStr);
     if (info) {
       const $label = $('<div class="miniArticleLabel"></div>').text(info.article);
       $wrapper.append($label);
@@ -690,7 +694,7 @@ function updateProductTitle(prodNum){
   // Convertir a string con zero-padding
   const pStr = prodNum<10 ? "0"+prodNum : String(prodNum);
   // Leer la info del diccionario
-  const info = productInfo[pStr];
+  const info = getProducto(linea, pStr);
   if (info) {
     const { article, color } = info;
     document.getElementById("productTitle").textContent = article + " " + color;
@@ -847,30 +851,6 @@ function updateProductTitle(prodNum){
     });
 
 });
-</script>
-<script>
-  // Al cargarse la página, engancha el click al nuevo flujo
-  document.getElementById('test-Excel')
-          .addEventListener('click', sharePedidoCSV);
-</script>
-
-<button id="test-share">Probar Web Share API</button>
-<script>
-  document.getElementById('test-share').addEventListener('click', async () => {
-    const f = new File(['¡Hola Mundo!'], 'hola.txt', { type: 'text/plain' });
-    const ok = navigator.canShare && navigator.canShare({ files: [f] });
-    console.log('canShare(files)?', ok);
-    if (ok) {
-      try {
-        await navigator.share({ files: [f], title: 'Test', text: 'Texto de prueba' });
-        console.log('✅ Compartido');
-      } catch (e) {
-        console.error('❌ Share falló:', e);
-      }
-    } else {
-      alert('No soportado en este contexto');
-    }
-  });
 </script>
 
 <script>

@@ -18,7 +18,6 @@
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
   <!-- Diccionario con Artículo y Color -->
   <script src="productInfo.js"></script>
-  <script src="catalogo.js"></script>
   <!-- SheetJS para generar XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <!-- jsPDF v2 -->
@@ -370,15 +369,21 @@
 </head>
 <body oncontextmenu="return false;"> <!-- Deshabilitar clic derecho -->
 
+  
+    
   <div id="floatingMessage">
     <p>Puede deslizar con el dedo/mouse para girar a gusto.</p>
     <p>También puede hacerle Zoom para ver mejor.</p>
     <button onclick="closeFloatingMessage()">Ok</button>
   </div>
 
-  <div style="position:fixed; bottom:1rem; right:1rem; z-index:9999;">
-    <button id="test-Excel" style="padding:0.5rem 1rem;">Probar Web Share API</button>
-  </div>
+  <div id="menuLineas"style="height:100vh;display:flex;flex-direction:column;
+            align-items:center;justify-content:center;gap:12px;">
+  <h2 style="margin:0">Elegí línea</h2>
+  <button data-linea="FLEX">Línea FLEX</button>
+  <button data-linea="BIRK_OJOTA">Línea Birk y Ojotas Brillo</button>
+</div>
+<div id="visorContainer" style="display:none">
 
   <div id="layout">
   <!-- Carrusel a la izquierda (landscape) o abajo (portrait) -->
@@ -579,17 +584,23 @@
     </div>
   </div>
 </div>
+</div>
+
+<script>
+  /* VARIABLES GLOBALES que los 2 scripts comparten */
+  window.frameCount   = 24;            // valor por defecto
+  window.baseFolder   = "Fotos/WEBP/FLEX/";
+  window.imageExt     = ".webp";
+  window.currentLinea = null;          // opcional, por si lo quieres
+</script>
 
 <script>
 $(function(){
-  const baseURL = "/";
-  const folder = "Fotos/WEBP/FLEX/";
-  const extension = ".webp";
-  const frameCount = 24;
+  const frameCount = window.frameCount;
   let currentProduct = 1;
 
-  initViewer(currentProduct);
-  buildCarousel(32);
+  // initViewer(currentProduct);
+  // buildCarousel(32);
 
   // ------------------- INIT VIEWER ------------------- //
   function initViewer(productNum){
@@ -647,7 +658,9 @@ $(function(){
 
     for (let p=1; p<=numProd; p++){
       const pStr = p<10 ? "0"+p : p;
-      const thumbURL = `${baseURL}${folder}Producto_${pStr}_F01${extension}`;
+      const base = window.baseFolder || "Fotos/WEBP/FLEX/";
+      const ext  = window.imageExt   || ".webp";
+      const thumbURL = `/${base}Producto_${pStr}_F01${ext}`;
       const $img = $('<img class="miniature" />').attr('src', thumbURL);
 
       $img.attr('data-product', p);
@@ -703,9 +716,11 @@ function updateProductTitle(prodNum){
   function buildSourceArray(prodNum){
     const images = [];
     const pStr = prodNum<10 ? "0"+prodNum : prodNum;
+    const base = window.baseFolder || "Fotos/WEBP/FLEX/";
+    const ext  = window.imageExt   || ".webp";
     for (let i=1; i<=frameCount; i++){
       const fStr = i<10 ? "0"+i : i;
-      images.push(`${baseURL}${folder}Producto_${pStr}_F${fStr}${extension}`);
+      images.push(`/${base}Producto_${pStr}_F${fStr}${ext}`);
     }
     return images;
   }
@@ -848,30 +863,6 @@ function updateProductTitle(prodNum){
 
 });
 </script>
-<script>
-  // Al cargarse la página, engancha el click al nuevo flujo
-  document.getElementById('test-Excel')
-          .addEventListener('click', sharePedidoCSV);
-</script>
-
-<button id="test-share">Probar Web Share API</button>
-<script>
-  document.getElementById('test-share').addEventListener('click', async () => {
-    const f = new File(['¡Hola Mundo!'], 'hola.txt', { type: 'text/plain' });
-    const ok = navigator.canShare && navigator.canShare({ files: [f] });
-    console.log('canShare(files)?', ok);
-    if (ok) {
-      try {
-        await navigator.share({ files: [f], title: 'Test', text: 'Texto de prueba' });
-        console.log('✅ Compartido');
-      } catch (e) {
-        console.error('❌ Share falló:', e);
-      }
-    } else {
-      alert('No soportado en este contexto');
-    }
-  });
-</script>
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -883,7 +874,46 @@ function updateProductTitle(prodNum){
   }
 </script>
   
+<script type="module">
+  import { catalogos, getProducto, getCodigo } from './catalogo.js';
 
+  /* 1) línea pasada por ?l=  (ej.: visor360.html?l=NUEVA) */
+  const preLinea = new URLSearchParams(location.search).get('l');
+
+  const menu   = document.getElementById('menuLineas');
+  const visor  = document.getElementById('visorContainer');
+
+  function arrancar(linea){
+    const cfg = catalogos[linea];
+    if (!cfg){ alert("Línea desconocida"); return; }
+
+    /* a) ocultar menú, mostrar visor */
+    menu.style.display  = 'none';
+    visor.style.display = 'block';
+
+    /* b) exportar globals que tu JS actual espera */
+    window.lineaActual   = linea;         // para pedidoModule.js
+    window.getProducto   = getProducto;   // idem
+    window.getCodigo     = getCodigo;     // idem
+
+    /* c) sobrescribir variables que ya usa tu visor */
+    frameCount = cfg.frameCount;          // ← aquí el let!
+    window.baseFolder = cfg.folder;       // la usarás en 5)
+    window.imageExt   = cfg.extension;
+
+    /* d) arrancar como siempre */
+    initViewer("01");          // o la función que uses
+    buildCarousel(cfg.productos.length);
+  }
+
+  /* 2) botón menú */
+  menu.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>arrancar(btn.dataset.linea));
+  });
+
+  /* 3) salto directo si venía ?l=…  (no rompe tus links viejos) */
+  if (preLinea) arrancar(preLinea);
+</script>
 
 </body>
 </html>
