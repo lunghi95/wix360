@@ -582,7 +582,8 @@
 <script>
 $(function(){
   const baseURL = "/";
-  const folder = "Fotos/JPG/FLEX/";
+  const folder = "Fotos/WEBP/FLEX/";
+  const extension = ".webp";
   const frameCount = 24;
   let currentProduct = 1;
 
@@ -645,7 +646,7 @@ $(function(){
 
     for (let p=1; p<=numProd; p++){
       const pStr = p<10 ? "0"+p : p;
-      const thumbURL = `${baseURL}${folder}Producto_${pStr}_F01.jpg`;
+      const thumbURL = `${baseURL}${folder}Producto_${pStr}_F01${extension}`;
       const $img = $('<img class="miniature" />').attr('src', thumbURL);
 
       $img.attr('data-product', p);
@@ -703,7 +704,7 @@ function updateProductTitle(prodNum){
     const pStr = prodNum<10 ? "0"+prodNum : prodNum;
     for (let i=1; i<=frameCount; i++){
       const fStr = i<10 ? "0"+i : i;
-      images.push(`${baseURL}${folder}Producto_${pStr}_F${fStr}.jpg`);
+      images.push(`${baseURL}${folder}Producto_${pStr}_F${fStr}${extension}`);
     }
     return images;
   }
