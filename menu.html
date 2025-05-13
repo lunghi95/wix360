@@ -4,6 +4,21 @@
   <meta charset="UTF-8">
   <title>Identify – Catálogos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#007bff">
+    <!-- ——— PWA meta tags ——— -->
+  <!-- Para Chrome/Android y Edge -->
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Para iOS/Safari -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+  <!-- Para Windows Tiles -->
+  <meta name="msapplication-TileColor" content="#007bff">
+  <meta name="msapplication-TileImage" content="/icons/icon-192x192.png">
+
   <style>
     body { font-family: sans-serif; margin:0; padding:2rem; text-align:center; }
     .grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:2rem; max-width:1200px; margin:0 auto; }
@@ -35,5 +50,16 @@
       <span>IDENTIFY Ojotas Brillo</span>
     </a>
   </div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+               .register('/sw.js', { scope: '/' })
+               .catch(err => console.warn('SW registration failed:', err));
+    });
+  }
+</script>
+
 </body>
 </html>
