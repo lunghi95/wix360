@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/spritespin@4.0.4/release/spritespin.js"></script>
   <script>
   // Aquí defines UNA VEZ la línea a usar en toda la página
-  window.linea = 'FLEX';   // o 'BIRK_OJOTA', según corresponda
+  window.linea = 'BIRK_OJOTA';   // 'FLEX' o 'BIRK_OJOTA', según corresponda
 </script>
   <!-- Diccionario con Artículo y Color -->
   <script src="productInfo.js"></script>
@@ -33,9 +33,9 @@
 
   <!-- Estilos / Scripts de pedidos -->
   <link rel="stylesheet" href="pedidoPanel.css">
-  <script src="pedidoModule.js"></script>
+  <script src="pedidoModule_V2.js"></script>
   <script src="pedidoPanel.js"></script>
-  <script src="botonesPedido.js"></script>
+  <script src="botonesPedido_V2.js"></script>
   
 
 
@@ -412,7 +412,7 @@
     <div id="brandLogoText">IDENTIFY</div>
   </div>
 </div>
-
+  
 <!-- Modal Cliente (Cabecera) -->
 <div id="clienteModal" class="modal">
   <div class="modal-panel">
@@ -593,7 +593,7 @@ $(function(){
   let currentProduct = 1;
 
   initViewer(currentProduct);
-  buildCarousel(Object.keys(productos).length);
+  buildCarousel(Object.keys(window.catalogos[window.linea].productos).length);
 
   // ------------------- INIT VIEWER ------------------- //
   function initViewer(productNum){

@@ -62,11 +62,11 @@ window.catalogos = {
     },
 
     /* 3) Artículos que requieren elegir Black / Black Total */
-    variantesBlackTotal: {
-      "JJ9825-5":   ["Black","Black Total"],
-      "JJ88718-14": ["Black","Black Total"],
-      "JJ88718-4":  ["Black","Black Total"]
-    }
+    variantesPorColor: {
+      "JJ9825-5": {"Black": [ "Black Total"]},
+      "JJ88718-14": {"Black": [ "Black Total"]},
+      "JJ88718-4": {"Black": [ "Black Total"]}
+      }
   },
 
   /* ——— LÍNEA NUEVA (36 frames) ——— */
@@ -116,12 +116,15 @@ window.catalogos = {
       "301-1891B-5": { "Black":22555, "Gold":22556, "Silver":22557 },
       "301-2361-19": { "Black":22549, "Gold":22551, "Silver":22550 },
       "301-2361-8":  { "Black":22552, "Beige":22553, "White":22554 },
-      "301-2461-1":  { "Black":22542, "Beige":22541, "Silver":22543, "Gold":22544 },
+      "301-2461-1":  { "Black":22542, "Beige":22541, "Silver":22543, "Gold":22544, "Black Animal":22571, "Beige Animal":22573, "White Animal":22572 },
       "301-2462-1":  { "Black":22545, "Beige":22546, "Gold":22548, "Silver":22547 }
     },
 
     /* 3) Esta línea no tiene “Black Total” */
-    variantesBlackTotal: { }
+    variantesPorColor: {
+      "301-2461-1": {"Black": ["Black Animal"],
+                     "Beige": ["Beige Animal", "White Animal"]}
+     }
   }
 };
 
