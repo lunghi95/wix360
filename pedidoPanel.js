@@ -232,6 +232,21 @@ function workbookToBase64(wb) {
   });
 }
 
+// --- NUEVO: genera PDF en memoria y lo pasa a Base64 --------------------
+function pedidoPdfToBase64 () {
+  return new Promise(resolve => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit:'mm', format:'a4' });
+    drawPedidoEnPDF(pdf);                         // reutilizamos tu render
+    // pasamos el arrayBuffer a base64
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.readAsDataURL(
+      new Blob([pdf.output('arraybuffer')], { type:'application/pdf' })
+    );
+  });
+}
+
 // 3) Envía a Netlify Functions
 async function sendPedidoToNetlify() {
   const wb = buildPedidoWorkbook();
@@ -243,11 +258,14 @@ async function sendPedidoToNetlify() {
   const yyyy     = hoy.getFullYear();
   const safeName = clienteData.nombre.replace(/\s+/g,'_');
   const filename = `NP_${safeName}_${dd}-${mm}-${yyyy}.xlsx`;
-  const subject  = `NP ${clienteData.nombre} ${dd}-${mm}-${yyyy}`;
+  const subject  = `Pedido ${clienteData.nombre} ${dd}-${mm}-${yyyy}`;
+  const customerEmail = (clienteData.email || '').trim();
+  const pdfBase64 = await pedidoPdfToBase64();
 
-  const payload = { subject, filename, attachmentBase64, bodyPlain:'', bodyHtml:'' };
 
-  const resp = await fetch('/.netlify/functions/send-pedido', {
+  const payload = { subject, filename, attachmentBase64, pdfBase64, bodyPlain:'', bodyHtml:'', customerEmail: customerEmail || null };
+
+  const resp = await fetch('/.netlify/functions/send-pedido-brevo', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)

@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/lunghi95/wix360#readme",
   "dependencies": {
+    "sib-api-v3-sdk": "^9.0.0",
     "@sendgrid/mail": "^8.1.5"
   }
 }
