@@ -20,8 +20,8 @@ exports.handler = async (event) => {
       sender:{ email:process.env.BREVO_SENDER_EMAIL, name:process.env.BREVO_SENDER_NAME },
       to:[{ email:process.env.BREVO_SENDER_EMAIL }],
       subject,
-      textContent: bodyPlain,
-      htmlContent: bodyHtml,
+      textContent: bodyPlain || 'Adjuntamos planilla y PDF',
+      htmlContent: bodyHtml  || '<p>Adjuntamos planilla y PDF.</p>',
       attachment:[
         { content: attachmentBase64, name: filename },
         { content: pdfBase64,       name: filename.replace(/xlsx$/,'pdf') }
